@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { useCurrentMainBaseLayout, useCurrentMainBaseState, useMainStore, useUsedBuildingIds } from "../../store"
-import MainBaseBuildingsSelector, { type MainBuilding } from "../MainBaseBuildingsSelector"
-import mainBuildingsData from "../MainBaseBuildingsSelector/main-buildings.json"
+import MainBaseBuildingsSelector, { type MainBuilding } from "./MainBaseBuildingsSelector"
+import mainBuildingsData from "./MainBaseBuildingsSelector/main-buildings.json"
 
 const mainBuildings = mainBuildingsData as MainBuilding[]
 
