@@ -1,0 +1,206 @@
+[
+  {
+    "id": "Main_AdministrativeHall",
+    "name": "Administrative Hall",
+    "attributes": [
+      "::s_value:: [Solari] production in [!Village]s",
+      "::s_percent_value:: [Authority] production"
+    ]
+  },
+  {
+    "id": "Main_RecyclingVats",
+    "name": "Recycling Vats",
+    "attributes": [
+      "::s_value:: [Water]",
+      "::s_value:: ::target_prod2:: per [::target::]"
+    ]
+  },
+  {
+    "id": "Main_RecyclingVats_Fremen",
+    "name": "Recycling Vats",
+    "attributes": [
+      "::s_value:: [Water]",
+      "::s_value:: ::target_prod2:: per [::target::]"
+    ],
+    "factionExclusive": "fremen",
+    "replacesGeneric": "Main_RecyclingVats"
+  },
+  {
+    "id": "Main_ChoamBranch",
+    "name": "CHOAM branch",
+    "attributes": [
+      "::target_effects:: when the base exchange rate is at least ::value::",
+      "::s_value:: max [Spice]"
+    ]
+  },
+  {
+    "id": "Main_HarvesterWorks",
+    "name": "Harvester Works",
+    "attributes": [
+      "::s_percent_value:: [!$my(harvester)]s gathering rate per [Economy] [!Building_Village] in their [!Village]",
+      "::percent:: [!$my(harvester)] [CrewPoint] cost"
+    ]
+  },
+  {
+    "id": "Main_SpiceLaboratory",
+    "name": "Spice Laboratory",
+    "attributes": [
+      "::s_value:: [Knowledge] per exploited [SpiceArea]",
+      "::s_value:: [FuelCell] requirements for [V_Harvester]"
+    ]
+  },
+  {
+    "id": "Main_MasonGuild",
+    "name": "Mason Guild",
+    "attributes": [
+      "::s_percent_value:: [Plascrete] production",
+      "::s_value:: [Solari] production in fully built [!Village]s"
+    ]
+  },
+  {
+    "id": "Main_RecruitCenter",
+    "name": "Recruitment Center",
+    "attributes": [
+      "::s_percent_value:: [Manpower] production",
+      "::s_value:: max [Manpower]"
+    ]
+  },
+  {
+    "id": "Main_Barracks",
+    "name": "Barracks",
+    "attributes": [
+      "::s_percent_value:: [Life] to Military Units",
+      "::s_percent_value:: [Experience] gains for Military Units"
+    ]
+  },
+  {
+    "id": "Main_FusionPlant",
+    "name": "Fusion Plant",
+    "attributes": [
+      "::s_value:: [FuelCell]"
+    ]
+  },
+  {
+    "id": "Main_MilitaryAcademy",
+    "name": "Military Academy",
+    "attributes": [
+      "::s_value:: [TrainingSlot]",
+      "Units regenerate [Life] ::s_percent:: faster"
+    ]
+  },
+  {
+    "id": "Main_Command",
+    "name": "Command Post",
+    "attributes": [
+      "::s_value:: [CommandPoint]",
+      "::percent:: Military Unit [Solari] [!Upkeep]"
+    ]
+  },
+  {
+    "id": "Main_ResearchCenter",
+    "name": "Research Center",
+    "attributes": [
+      "::s_percent_value:: [Knowledge]",
+      "::s_percent_value:: [Hegemony] gain from fulfilling a Spice Contract",
+      "::s_percent_value:: daily [Hegemony] gain"
+    ]
+  },
+  {
+    "id": "Main_Embassy",
+    "name": "Embassy",
+    "attributes": [
+      "::s_value:: [::target::] on Council opening"
+    ]
+  },
+  {
+    "id": "Main_Embassy_Fremen",
+    "name": "Embassy",
+    "attributes": [
+      "::s_percent_value:: [Influence] production"
+    ],
+    "factionExclusive": "fremen",
+    "replacesGeneric": "Main_Embassy"
+  },
+  {
+    "id": "Main_Bazaar",
+    "name": "Bazaar",
+    "attributes": [
+      "::s_value:: [Solari] per active trade with a [Sietch]",
+      "::s_value:: [Water] per active trade with a [Sietch]",
+      "Can only be built in [$my(mainbase)]"
+    ]
+  },
+  {
+    "id": "Main_Temple",
+    "name": "Al-Gaib Temple",
+    "attributes": []
+  },
+  {
+    "id": "Main_LandsraadQuarters",
+    "name": "Landsraad Quarters",
+    "attributes": [
+      "::s_value:: max [Influence]"
+    ]
+  },
+  {
+    "id": "Main_IntelAgency",
+    "name": "Intelligence Agency",
+    "attributes": []
+  },
+  {
+    "id": "Main_CouncilChamber",
+    "name": "Council Chamber",
+    "attributes": [
+      "::us_percent:: of [CouncilVote]s and [Influence] spent on a resolution choice that failed are reimbursed as [Influence]",
+      "::s_percent:: [Standing] losses"
+    ]
+  },
+  {
+    "id": "Main_InterrogationCenter",
+    "name": "Interrogation Center",
+    "attributes": [
+      "Gain ::value:: [Intel] when killing enemy units",
+      "::percent_value:: chance to brainwash captured [Agent]s"
+    ]
+  },
+  {
+    "id": "Main_BlackMarketBranch",
+    "name": "Black Market Branch",
+    "attributes": [
+      "::s_percent_value:: [Spice], [Plascrete], [Manpower] and [Intel] production per [UWHeadquarters]"
+    ]
+  },
+  {
+    "id": "Main_Monument",
+    "name": "Emperor Monument",
+    "attributes": [
+      "Generate ::value:: [Hegemony] per day"
+    ]
+  },
+  {
+    "id": "Main_MuseumOfUnboundArts",
+    "name": "Museum of Unbound Arts",
+    "attributes": [
+      "Removes limit on number of [!Masterpiece]s per [!Village]",
+      "Every [!Masterpiece] on the planet gives [Ecaz-longname]: ::target_effects_list::"
+    ]
+  },
+  {
+    "id": "Main_NeuralCore",
+    "name": "Neural Core",
+    "attributes": [
+      "Connected [NeuralNode]s produce ::value:: [FuelCell]",
+      "::s_percent_value:: [Knowledge] per connected [NeuralNode]"
+    ]
+  },
+  {
+    "id": "Main_WeaponsFactory",
+    "name": "Underground Tunnels",
+    "attributes": []
+  },
+  {
+    "id": "Main_Fortifications",
+    "name": "Enhanced Fortifications",
+    "attributes": []
+  }
+]

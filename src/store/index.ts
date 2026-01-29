@@ -10,7 +10,7 @@ interface MainStore {
   selectedFaction: FactionLabel
   setSelectedFaction: (faction: FactionLabel) => void
   mainBaseState: Record<FactionLabel, MainBaseState>
-  toggleMainBaseCell: (rowIndex: number, groupIndex: number, cellIndex: number) => void
+  setMainBaseCell: (rowIndex: number, groupIndex: number, cellIndex: number, buildingId: string | null) => void
 }
 
 export const useMainStore = create<MainStore>()(
@@ -19,14 +19,13 @@ export const useMainStore = create<MainStore>()(
       selectedFaction: "atreides",
       setSelectedFaction: (faction) => set({ selectedFaction: faction }),
       mainBaseState: mainBasesState,
-      toggleMainBaseCell: (rowIndex, groupIndex, cellIndex) => {
+      setMainBaseCell: (rowIndex, groupIndex, cellIndex, buildingId) => {
         const { selectedFaction, mainBaseState } = get()
         const factionState = mainBaseState[selectedFaction]
         const row = factionState[rowIndex]
         const group = row[groupIndex]
-        const newCellValue = !group[cellIndex]
         const newGroup = [...group]
-        newGroup[cellIndex] = newCellValue
+        newGroup[cellIndex] = buildingId
         const newRow = row.map((g, i) => (i === groupIndex ? newGroup : g))
         const newFactionState = factionState.map((r, i) => (i === rowIndex ? newRow : r))
         set({
@@ -50,5 +49,21 @@ export function useCurrentMainBaseState(): MainBaseState {
   const selectedFaction = useMainStore((state) => state.selectedFaction)
   const mainBaseState = useMainStore((state) => state.mainBaseState)
   return mainBaseState[selectedFaction]
+}
+
+/** Retourne la liste des IDs de bâtiments utilisés dans la base actuelle */
+export function useUsedBuildingIds(): string[] {
+  const mainBaseState = useCurrentMainBaseState()
+  const usedIds: string[] = []
+  for (const row of mainBaseState) {
+    for (const group of row) {
+      for (const cell of group) {
+        if (cell !== null) {
+          usedIds.push(cell)
+        }
+      }
+    }
+  }
+  return usedIds
 }
 
