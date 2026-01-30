@@ -1,41 +1,20 @@
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useState } from "react"
 import MainBase from "./components/MainBase"
 import FactionSelector from "./components/FactionSelector"
 import BuildNameEditable from "./components/BuildNameEditable"
 import Topbar from "./components/Topbar"
 import BuildsSidebar from "./components/BuildsSidebar"
-import { useMainStore, getBuildSnapshot } from "./store"
+import { useMainStore, useIsBuildUpToDate, useIsBuildEmpty } from "./store"
 import { decodeBuildPayload } from "./utils/mainBaseShare"
 
-function isBuildEmpty(mainBaseState: Record<string, (string | null)[][][]>, selectedFaction: string): boolean {
-  const state = mainBaseState[selectedFaction]
-  if (!state || !Array.isArray(state)) return true
-  for (const row of state) {
-    if (!Array.isArray(row)) continue
-    for (const group of row) {
-      if (!Array.isArray(group)) continue
-      for (const cell of group) {
-        if (cell !== null) return false
-      }
-    }
-  }
-  return true
-}
-
 function App() {
-  const [buildsOpen, setBuildsOpen] = useState(false)
+  const [buildsOpen, setBuildsOpen] = useState(true)
   const [showSavedFeedback, setShowSavedFeedback] = useState(false)
   const [feedbackFading, setFeedbackFading] = useState(false)
   const saveCurrentBuild = useMainStore((s) => s.saveCurrentBuild)
   const resetToDefault = useMainStore((s) => s.resetToDefault)
-  const lastSavedSnapshot = useMainStore((s) => s.lastSavedSnapshot)
-  const selectedFaction = useMainStore((s) => s.selectedFaction)
-  const mainBaseState = useMainStore((s) => s.mainBaseState)
-  const buildingOrder = useMainStore((s) => s.buildingOrder)
-  const currentBuildName = useMainStore((s) => s.currentBuildName)
-  const currentSnapshot = getBuildSnapshot({ selectedFaction, mainBaseState, buildingOrder, currentBuildName })
-  const isUpToDate = lastSavedSnapshot !== null && currentSnapshot === lastSavedSnapshot
-  const isEmpty = useMemo(() => isBuildEmpty(mainBaseState, selectedFaction), [mainBaseState, selectedFaction])
+  const isUpToDate = useIsBuildUpToDate()
+  const isEmpty = useIsBuildEmpty()
   const showSaveButton = (!isUpToDate || showSavedFeedback) && !isEmpty
 
   useEffect(() => {

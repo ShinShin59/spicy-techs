@@ -1,5 +1,19 @@
 import { useState, useRef, useEffect } from "react"
-import { useMainStore, type SavedBuild } from "@/store"
+import { useMainStore, FACTION_LABELS, type SavedBuild, type FactionLabel } from "@/store"
+
+const FACTION_ICON_PATH = "/images/faction_buttons_square"
+
+function getFactionIconPath(faction: FactionLabel): string {
+  return `${FACTION_ICON_PATH}/${faction}.png`
+}
+
+/** Précharge les icônes de faction pour éviter le lag à l'affichage de la liste */
+function preloadFactionIcons(): void {
+  ; (FACTION_LABELS as readonly FactionLabel[]).forEach((faction) => {
+    const img = new Image()
+    img.src = getFactionIconPath(faction)
+  })
+}
 
 const PencilIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 opacity-70">
@@ -91,6 +105,12 @@ function BuildRow({ build, onLoad, onDelete, onRename }: BuildRowProps) {
       }}
       className="group flex items-center gap-2 py-2 px-3 rounded border border-transparent hover:bg-zinc-800 hover:border-zinc-600 cursor-pointer text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-inset"
     >
+      <img
+        src={getFactionIconPath(build.selectedFaction)}
+        alt=""
+        className="w-6 h-6 rounded shrink-0 object-cover"
+        aria-hidden
+      />
       <span className="min-w-0 flex-1 truncate text-white">{build.name}</span>
       <button
         type="button"
@@ -130,11 +150,15 @@ const BuildsSidebar = ({ onClose }: BuildsSidebarProps) => {
   const deleteBuild = useMainStore((s) => s.deleteBuild)
   const renameBuild = useMainStore((s) => s.renameBuild)
 
+  useEffect(() => {
+    preloadFactionIcons()
+  }, [])
+
   const sortedSaved = [...savedBuilds].sort((a, b) => b.createdAt - a.createdAt)
 
   return (
     <aside
-      className="fixed top-1/2 right-3 z-50 w-[280px] max-w-[90vw] max-h-[70vh] -translate-y-1/2 flex flex-col rounded-lg border border-zinc-700 bg-zinc-900 shadow-xl overflow-hidden"
+      className="fixed top-1/2 right-3 z-50 w-[280px] max-w-[90vw] max-h-[70vh] -translate-y-1/2 flex flex-col border border-zinc-700 bg-zinc-900 shadow-xl overflow-hidden"
       aria-label="Liste des builds"
     >
       <div className="flex items-center justify-between p-3 border-b border-zinc-700 shrink-0">
