@@ -2,6 +2,19 @@ import { useState, useRef, useEffect, memo } from "react"
 import { useMainStore, FACTION_LABELS, type SavedBuild, type FactionLabel } from "@/store"
 import { getFactionIconPath } from "@/utils/assetPaths"
 
+function getFactionFocusRingClass(faction: FactionLabel): string {
+  const ring: Record<FactionLabel, string> = {
+    harkonnen: "focus:ring-red-500",
+    atreides: "focus:ring-amber-500",
+    ecaz: "focus:ring-green-500",
+    smuggler: "focus:ring-yellow-500",
+    vernius: "focus:ring-blue-500",
+    fremen: "focus:ring-orange-500",
+    corrino: "focus:ring-purple-500",
+  }
+  return ring[faction] ?? "focus:ring-amber-500"
+}
+
 function preloadFactionIcons(): void {
   ; (FACTION_LABELS as readonly FactionLabel[]).forEach((faction) => {
     const img = new Image()
@@ -90,7 +103,7 @@ const BuildRow = memo(function BuildRow({ build, onLoad, onDelete, onRename }: B
             }
           }}
           onClick={(e) => e.stopPropagation()}
-          className="flex-1 min-w-0 h-6 bg-zinc-700 text-white border border-zinc-600 rounded px-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-inset"
+          className={`flex-1 min-w-0 h-6 bg-zinc-700 text-white border border-zinc-600 rounded px-2 text-sm focus:outline-none focus:ring-2 focus:ring-inset ${getFactionFocusRingClass(build.selectedFaction)}`}
           aria-label="New name"
         />
       </div>
@@ -108,7 +121,7 @@ const BuildRow = memo(function BuildRow({ build, onLoad, onDelete, onRename }: B
           onLoad(build.id)
         }
       }}
-      className={`${rowClass} hover:bg-zinc-800 hover:border-zinc-600 cursor-pointer focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-inset`}
+      className={`${rowClass} hover:bg-zinc-800 hover:border-zinc-600 cursor-pointer focus:outline-none focus:ring-2 focus:ring-inset ${getFactionFocusRingClass(build.selectedFaction)}`}
     >
       <img
         key={`${build.id}-faction`}
