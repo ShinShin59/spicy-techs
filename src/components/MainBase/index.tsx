@@ -44,7 +44,7 @@ const MainBase = () => {
     <>
       <div
         id="main-base-grid"
-        className="bg-red-500 w-[384px] h-[320px] flex flex-col justify-center items-center gap-12"
+        className="relative bg-red-500 w-[384px] h-[320px] flex flex-col justify-center items-center gap-12"
       >
         {layout.map((row, rowIndex) => (
           <div key={rowIndex} className="flex" id={`main-base-row-${rowIndex}`}>
@@ -78,15 +78,16 @@ const MainBase = () => {
             ))}
           </div>
         ))}
+        {selectedCell && (
+          <MainBaseBuildingsSelector
+            onClose={handleCloseSelector}
+            onSelect={handleSelectBuilding}
+            usedBuildingIds={usedBuildingIds}
+          />
+        )}
       </div>
 
-      {selectedCell && (
-        <MainBaseBuildingsSelector
-          onClose={handleCloseSelector}
-          onSelect={handleSelectBuilding}
-          usedBuildingIds={usedBuildingIds}
-        />
-      )}
+
     </>
   )
 }
