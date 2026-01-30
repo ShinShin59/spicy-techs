@@ -1,5 +1,6 @@
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
+import type { SharedBuildPayload } from "../utils/mainBaseShare"
 import type { MainBaseLayout, MainBaseState } from "./main-base"
 import { mainBasesLayout, mainBasesState } from "./main-base"
 
@@ -27,13 +28,40 @@ const initialBuildingOrder: BuildingOrderState = {
   corrino: [],
 }
 
+/** Build sauvegardé (liste locale, id non partagé en URL) */
+export interface SavedBuild {
+  id: string
+  name: string
+  createdAt: number
+  selectedFaction: FactionLabel
+  mainBaseState: Record<FactionLabel, MainBaseState>
+  buildingOrder: BuildingOrderState
+}
+
+function generateBuildId(): string {
+  if (typeof crypto !== "undefined" && crypto.randomUUID) {
+    return crypto.randomUUID()
+  }
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`
+}
+
 interface MainStore {
   selectedFaction: FactionLabel
   setSelectedFaction: (faction: FactionLabel) => void
   mainBaseState: Record<FactionLabel, MainBaseState>
   buildingOrder: BuildingOrderState
+  currentBuildName: string
+  savedBuilds: SavedBuild[]
   setMainBaseCell: (rowIndex: number, groupIndex: number, cellIndex: number, buildingId: string | null) => void
+  loadSharedBuild: (payload: SharedBuildPayload) => void
+  setCurrentBuildName: (name: string) => void
+  saveCurrentBuild: (name?: string) => void
+  loadBuild: (id: string) => void
+  deleteBuild: (id: string) => void
+  renameBuild: (id: string, name: string) => void
 }
+
+const DEFAULT_BUILD_NAME = "My build"
 
 export const useMainStore = create<MainStore>()(
   persist(
@@ -42,6 +70,8 @@ export const useMainStore = create<MainStore>()(
       setSelectedFaction: (faction) => set({ selectedFaction: faction }),
       mainBaseState: mainBasesState,
       buildingOrder: initialBuildingOrder,
+      currentBuildName: DEFAULT_BUILD_NAME,
+      savedBuilds: [],
       setMainBaseCell: (rowIndex, groupIndex, cellIndex, buildingId) => {
         const { selectedFaction, mainBaseState, buildingOrder } = get()
         const factionState = mainBaseState[selectedFaction]
@@ -74,30 +104,111 @@ export const useMainStore = create<MainStore>()(
           },
         })
       },
+      loadSharedBuild: (payload) => {
+        const { mainBaseState, buildingOrder } = get()
+        set({
+          selectedFaction: payload.f,
+          mainBaseState: { ...mainBaseState, [payload.f]: payload.state },
+          buildingOrder: { ...buildingOrder, [payload.f]: payload.order },
+        })
+      },
+      setCurrentBuildName: (name) => set({ currentBuildName: name.trim() || DEFAULT_BUILD_NAME }),
+      saveCurrentBuild: (name) => {
+        const { selectedFaction, mainBaseState, buildingOrder, savedBuilds } = get()
+        const factionNumRegex = new RegExp(`^${selectedFaction}\\s+(\\d+)$`)
+        const existingNums = savedBuilds
+          .map((b) => b.name.match(factionNumRegex)?.[1])
+          .filter(Boolean)
+          .map((s) => parseInt(s!, 10))
+        const nextNum = existingNums.length === 0 ? 1 : Math.max(...existingNums) + 1
+        const defaultName = `${selectedFaction} ${nextNum}`
+        const finalName = (name?.trim() || defaultName).trim() || defaultName
+        const saved: SavedBuild = {
+          id: generateBuildId(),
+          name: finalName,
+          createdAt: Date.now(),
+          selectedFaction,
+          mainBaseState: JSON.parse(JSON.stringify(mainBaseState)),
+          buildingOrder: JSON.parse(JSON.stringify(buildingOrder)),
+        }
+        set({ savedBuilds: [saved, ...savedBuilds] })
+      },
+      loadBuild: (id) => {
+        const { savedBuilds } = get()
+        const build = savedBuilds.find((b) => b.id === id)
+        if (!build) return
+        set({
+          selectedFaction: build.selectedFaction,
+          mainBaseState: JSON.parse(JSON.stringify(build.mainBaseState)),
+          buildingOrder: JSON.parse(JSON.stringify(build.buildingOrder)),
+          currentBuildName: build.name,
+        })
+      },
+      deleteBuild: (id) => {
+        set({ savedBuilds: get().savedBuilds.filter((b) => b.id !== id) })
+      },
+      renameBuild: (id, name) => {
+        const trimmed = name.trim()
+        if (!trimmed) return
+        set({
+          savedBuilds: get().savedBuilds.map((b) => (b.id === id ? { ...b, name: trimmed } : b)),
+        })
+      },
     }),
     {
       name: "spicy-techs-main-store",
-      version: 2,
+      version: 3,
       migrate: (persistedState, version) => {
         // Migration depuis l'ancienne version ou données corrompues
         if (version === 0 || !persistedState) {
-          return { selectedFaction: "atreides", mainBaseState: mainBasesState, buildingOrder: initialBuildingOrder }
+          return {
+            selectedFaction: "atreides",
+            mainBaseState: mainBasesState,
+            buildingOrder: initialBuildingOrder,
+            currentBuildName: DEFAULT_BUILD_NAME,
+            savedBuilds: [],
+          }
         }
         const state = persistedState as MainStore
         // Vérifie que mainBaseState est au bon format
         if (!state.mainBaseState || typeof state.mainBaseState !== "object") {
-          return { ...state, mainBaseState: mainBasesState, buildingOrder: initialBuildingOrder }
+          return {
+            ...state,
+            mainBaseState: mainBasesState,
+            buildingOrder: initialBuildingOrder,
+            currentBuildName: state.currentBuildName ?? DEFAULT_BUILD_NAME,
+            savedBuilds: state.savedBuilds ?? [],
+          }
         }
         // Vérifie chaque faction
         for (const faction of FACTION_LABELS) {
           const factionState = state.mainBaseState[faction as FactionLabel]
           if (!Array.isArray(factionState)) {
-            return { ...state, mainBaseState: mainBasesState, buildingOrder: initialBuildingOrder }
+            return {
+              ...state,
+              mainBaseState: mainBasesState,
+              buildingOrder: initialBuildingOrder,
+              currentBuildName: state.currentBuildName ?? DEFAULT_BUILD_NAME,
+              savedBuilds: state.savedBuilds ?? [],
+            }
           }
         }
         // Migration v1 -> v2 : ajouter buildingOrder si absent
         if (version === 1 || !state.buildingOrder) {
-          return { ...state, buildingOrder: initialBuildingOrder }
+          return {
+            ...state,
+            buildingOrder: initialBuildingOrder,
+            currentBuildName: state.currentBuildName ?? DEFAULT_BUILD_NAME,
+            savedBuilds: state.savedBuilds ?? [],
+          }
+        }
+        // Migration v2 -> v3 : ajouter currentBuildName et savedBuilds
+        if (version === 2) {
+          return {
+            ...state,
+            currentBuildName: state.currentBuildName ?? DEFAULT_BUILD_NAME,
+            savedBuilds: Array.isArray(state.savedBuilds) ? state.savedBuilds : [],
+          }
         }
         return state
       },

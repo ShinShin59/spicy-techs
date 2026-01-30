@@ -2,6 +2,17 @@ import type { MainBuilding } from "../MainBaseBuildingsSelector"
 
 const OFFSET = 8
 
+const categoryBg: Record<MainBuilding["category"], string> = {
+  Economy: "bg-economy",
+  Military: "bg-military",
+  Statecraft: "bg-statecraft",
+}
+const categoryBorder: Record<MainBuilding["category"], string> = {
+  Economy: "border-economy",
+  Military: "border-military",
+  Statecraft: "border-statecraft",
+}
+
 export interface BuildingAttributesTooltipProps {
   building: MainBuilding
   /** Position d'ancrage (ex. getBoundingClientRect de la cellule/bouton) */
@@ -101,16 +112,21 @@ export default function BuildingAttributesTooltip({
     maxWidth: 320,
   }
 
+  const bgClass = categoryBg[building.category]
+  const borderClass = categoryBorder[building.category]
+
   return (
     <div
-      className="z-60 bg-zinc-900 border border-zinc-700 rounded px-3 py-2 shadow-lg pointer-events-none"
+      className={`z-60 bg-zinc-900 border rounded shadow-lg pointer-events-none overflow-hidden ${borderClass}`}
       style={style}
     >
-      <div className="text-zinc-100 font-semibold text-sm uppercase tracking-wide mb-1.5">
-        {building.name}
+      <div className={`px-3 py-2 border-b border-zinc-700/80 ${bgClass}`}>
+        <div className="text-zinc-100 font-semibold text-sm uppercase tracking-wide">
+          {building.name}
+        </div>
       </div>
       {building.attributes.length > 0 ? (
-        <ul className="list-disc list-inside space-y-0.5 text-zinc-400">
+        <ul className="list-disc list-inside space-y-0.5 text-zinc-400 px-3 py-2">
           {building.attributes.map((attr, i) => (
             <li key={i}>
               <AttributeLine line={attr} />

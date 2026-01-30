@@ -49,6 +49,12 @@ const categoryColors: Record<Category, string> = {
   Statecraft: 'border-statecraft text-statecraft',
 }
 
+const categoryBgOpacity: Record<Category, string> = {
+  Economy: 'bg-economy/25',
+  Military: 'bg-military/25',
+  Statecraft: 'bg-statecraft/25',
+}
+
 const MainBaseBuildingsSelector = ({
   onClose,
   onSelect,
@@ -129,15 +135,9 @@ const MainBaseBuildingsSelector = ({
                   const isUsed = usedBuildingNames.includes(building.name)
 
                   return (
-                    <button
+                    <div
                       key={building.name}
-                      onClick={() => !isUsed && onSelect(building.name)}
-                      disabled={isUsed}
-                      className={`
-                        w-12 h-12 border-2 bg-zinc-800 flex items-center justify-center shrink-0
-                        ${categoryColors[category].split(' ')[0]}
-                        ${isUsed ? 'grayscale opacity-50 cursor-not-allowed' : 'hover:brightness-125 cursor-pointer'}
-                      `}
+                      className="w-12 h-12 shrink-0"
                       onMouseEnter={(e) => {
                         const rect = e.currentTarget.getBoundingClientRect()
                         setHoverTooltip({
@@ -152,12 +152,23 @@ const MainBaseBuildingsSelector = ({
                       }}
                       onMouseLeave={() => setHoverTooltip(null)}
                     >
-                      <img
-                        src={getBuildingIconPath(building.name)}
-                        alt={building.name}
-                        className="w-10 h-10"
-                      />
-                    </button>
+                      <button
+                        onClick={() => !isUsed && onSelect(building.name)}
+                        disabled={isUsed}
+                        className={`
+                          w-full h-full border-2 flex items-center justify-center
+                          ${categoryColors[category].split(' ')[0]}
+                          ${categoryBgOpacity[category]}
+                          ${isUsed ? 'grayscale opacity-50 cursor-not-allowed' : 'hover:brightness-125 cursor-pointer'}
+                        `}
+                      >
+                        <img
+                          src={getBuildingIconPath(building.name)}
+                          alt={building.name}
+                          className="w-10 h-10"
+                        />
+                      </button>
+                    </div>
                   )
                 })}
               </div>

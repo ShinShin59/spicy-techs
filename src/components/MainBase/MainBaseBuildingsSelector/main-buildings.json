@@ -2,7 +2,7 @@
   {
     "name": "Administrative Hall",
     "attributes": [
-      "+10 [Solari] production in [Village]s",
+      "+10 [Solari] production in [Villages]",
       "+20% [Authority] production"
     ],
     "category": "Economy"

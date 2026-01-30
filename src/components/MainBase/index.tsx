@@ -1,5 +1,6 @@
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import { useCurrentMainBaseLayout, useCurrentMainBaseState, useMainStore, useUsedBuildingIds, useCurrentBuildingOrder, getBuildingOrderNumber } from "../../store"
+import { encodeBuildPayload, getShareUrl } from "../../utils/mainBaseShare"
 import MainBaseBuildingsSelector, { type MainBuilding, getBuildingIconPath } from "./MainBaseBuildingsSelector"
 import BuildingAttributesTooltip from "./BuildingAttributesTooltip"
 import mainBuildingsData from "./MainBaseBuildingsSelector/main-buildings.json"
@@ -39,8 +40,44 @@ const MainBase = () => {
   const layout = useCurrentMainBaseLayout()
   const mainBaseState = useCurrentMainBaseState()
   const setMainBaseCell = useMainStore((state) => state.setMainBaseCell)
+  const selectedFaction = useMainStore((state) => state.selectedFaction)
   const usedBuildingIds = useUsedBuildingIds()
   const buildingOrder = useCurrentBuildingOrder()
+
+  const [shareHovered, setShareHovered] = useState(false)
+  const [shareCopied, setShareCopied] = useState(false)
+  const [shareFadingOut, setShareFadingOut] = useState(false)
+  const shareHoveredRef = useRef(false)
+  const shareCopyTimersRef = useRef<ReturnType<typeof setTimeout>[]>([])
+
+  shareHoveredRef.current = shareHovered
+
+  useEffect(() => {
+    return () => {
+      shareCopyTimersRef.current.forEach(clearTimeout)
+    }
+  }, [])
+
+  const handleShare = () => {
+    const payload = { f: selectedFaction, state: mainBaseState, order: buildingOrder }
+    const encoded = encodeBuildPayload(payload)
+    const url = getShareUrl(encoded)
+    window.history.replaceState(null, "", url)
+    void navigator.clipboard.writeText(url).catch(() => { })
+    shareCopyTimersRef.current.forEach(clearTimeout)
+    setShareCopied(true)
+    shareCopyTimersRef.current = [
+      setTimeout(() => {
+        setShareCopied(false)
+        if (!shareHoveredRef.current) {
+          setShareFadingOut(true)
+          shareCopyTimersRef.current.push(
+            setTimeout(() => setShareFadingOut(false), 250)
+          )
+        }
+      }, 800),
+    ]
+  }
 
   const [selectedCell, setSelectedCell] = useState<SelectedCell | null>(null)
   const [anchorPosition, setAnchorPosition] = useState<AnchorPosition | null>(null)
@@ -78,85 +115,111 @@ const MainBase = () => {
 
   return (
     <>
-      <div
-        id="main-base-grid"
-        className="relative bg-zinc-900 border border-zinc-700 w-[384px] h-[320px] flex flex-col justify-center items-center gap-12"
-      >
-        {layout.map((row, rowIndex) => (
-          <div key={rowIndex} className="flex" id={`main-base-row-${rowIndex}`}>
-            {row.map((building, groupIndex) => (
+      <div className="relative group">
+        <div
+          id="main-base-grid"
+          className="relative bg-zinc-900 border border-zinc-700 w-[384px] h-[320px] flex flex-col justify-center items-center gap-12"
+        >
+          {layout.map((row, rowIndex) => (
+            <div key={rowIndex} className="flex" id={`main-base-row-${rowIndex}`}>
+              {row.map((building, groupIndex) => (
+                <div
+                  key={groupIndex}
+                  className="flex mx-4"
+                  id={`main-base-building-block-${groupIndex}`}
+                >
+                  {Array.from({ length: building }).map((_, cellIndex) => {
+                    const buildingName = mainBaseState[rowIndex]?.[groupIndex]?.[cellIndex]
+                    const buildingData = getBuildingByName(buildingName)
+                    const hasBuilding = buildingName !== null && buildingData !== undefined
+                    const orderNumber = getBuildingOrderNumber(buildingOrder, rowIndex, groupIndex, cellIndex)
+
+                    const cellBgClass = hasBuilding && buildingData
+                      ? getCategoryBgClass(buildingData.category)
+                      : 'bg-zinc-600 hover:bg-zinc-500'
+
+                    return (
+                      <div
+                        key={cellIndex}
+                        role="button"
+                        tabIndex={0}
+                        className={`relative w-[64px] h-[64px] cursor-pointer flex items-center justify-center overflow-hidden border border-zinc-700 ${cellBgClass}`}
+                        id={`main-base-building-${cellIndex}`}
+                        onClick={(e) => handleCellClick(e, rowIndex, groupIndex, cellIndex)}
+                        onContextMenu={(e) => handleCellRightClick(e, rowIndex, groupIndex, cellIndex)}
+                        onMouseEnter={
+                          hasBuilding && buildingData
+                            ? (e) => {
+                              const rect = e.currentTarget.getBoundingClientRect()
+                              setHoverTooltip({
+                                building: buildingData,
+                                anchorRect: {
+                                  left: rect.left,
+                                  top: rect.top,
+                                  width: rect.width,
+                                  height: rect.height,
+                                },
+                              })
+                            }
+                            : undefined
+                        }
+                        onMouseLeave={
+                          hasBuilding ? () => setHoverTooltip(null) : undefined
+                        }
+                      >
+                        {hasBuilding && buildingData && (
+                          <img
+                            src={getBuildingIconPath(buildingData.name)}
+                            alt={buildingData.name}
+                            className="w-12 h-12"
+                          />
+                        )}
+                        {orderNumber !== null && (
+                          <span className="absolute top-0.5 right-1 text-xs font-bold text-white bg-black/60 px-1 rounded">
+                            {orderNumber}
+                          </span>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              ))}
+            </div>
+          ))}
+          {selectedCell && anchorPosition && (
+            <MainBaseBuildingsSelector
+              onClose={handleCloseSelector}
+              onSelect={handleSelectBuilding}
+              usedBuildingNames={usedBuildingIds}
+              anchorPosition={anchorPosition}
+            />
+          )}
+        </div>
+        <div className="absolute bottom-2 right-2">
+          <button
+            type="button"
+            onClick={handleShare}
+            onMouseEnter={() => setShareHovered(true)}
+            onMouseLeave={() => setShareHovered(false)}
+            aria-label="Copier le lien de partage"
+            className="p-1.5 rounded text-zinc-300 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer hover:[&_img]:brightness-0 hover:[&_img]:invert"
+            title="share"
+          >
+            <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiB2aWV3Qm94PSIwIDAgNzIgNzIiIGZpbGw9IiM2YjcyODAiPjxnIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzZiNzI4MCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2UtbWl0ZXJsaW1pdD0iMTAiIHN0cm9rZS13aWR0aD0iMiI+PGNpcmNsZSBjeD0iNTAiIGN5PSIyMiIgcj0iNSIvPjxjaXJjbGUgY3g9IjIyIiBjeT0iMzgiIHI9IjUiLz48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI1Ii8+PHBhdGggZD0ibTI3IDQwbDE4IDhtMC0yM0wyNyAzNSIvPjwvZz48L3N2Zz4=" alt="Share" className="w-6 h-6 transition-[filter]" />
+          </button>
+          {(shareHovered || shareCopied || shareFadingOut) && (
+            <div
+              className={`absolute left-1/2 w-max bottom-full mb-1 -translate-x-1/2 z-10 bg-zinc-950 border border-zinc-700 rounded shadow-lg px-3 py-2 text-zinc-100 text-sm text-center pointer-events-none transition-opacity duration-200 ${shareFadingOut ? "opacity-0" : "opacity-100"}`}
+              role="tooltip"
+            >
+              {shareCopied || shareFadingOut ? "Copied!" : "Copy to clipboard"}
               <div
-                key={groupIndex}
-                className="flex mx-4"
-                id={`main-base-building-block-${groupIndex}`}
-              >
-                {Array.from({ length: building }).map((_, cellIndex) => {
-                  const buildingName = mainBaseState[rowIndex]?.[groupIndex]?.[cellIndex]
-                  const buildingData = getBuildingByName(buildingName)
-                  const hasBuilding = buildingName !== null && buildingData !== undefined
-                  const orderNumber = getBuildingOrderNumber(buildingOrder, rowIndex, groupIndex, cellIndex)
-
-                  const cellBgClass = hasBuilding && buildingData
-                    ? getCategoryBgClass(buildingData.category)
-                    : 'bg-zinc-600 hover:bg-zinc-500'
-
-                  return (
-                    <div
-                      key={cellIndex}
-                      role="button"
-                      tabIndex={0}
-                      className={`relative w-[64px] h-[64px] cursor-pointer flex items-center justify-center overflow-hidden border border-zinc-700 ${cellBgClass}`}
-                      id={`main-base-building-${cellIndex}`}
-                      onClick={(e) => handleCellClick(e, rowIndex, groupIndex, cellIndex)}
-                      onContextMenu={(e) => handleCellRightClick(e, rowIndex, groupIndex, cellIndex)}
-                      onMouseEnter={
-                        hasBuilding && buildingData
-                          ? (e) => {
-                            const rect = e.currentTarget.getBoundingClientRect()
-                            setHoverTooltip({
-                              building: buildingData,
-                              anchorRect: {
-                                left: rect.left,
-                                top: rect.top,
-                                width: rect.width,
-                                height: rect.height,
-                              },
-                            })
-                          }
-                          : undefined
-                      }
-                      onMouseLeave={
-                        hasBuilding ? () => setHoverTooltip(null) : undefined
-                      }
-                      title={buildingData?.name || "Vide"}
-                    >
-                      {hasBuilding && buildingData && (
-                        <img
-                          src={getBuildingIconPath(buildingData.name)}
-                          alt={buildingData.name}
-                          className="w-12 h-12"
-                        />
-                      )}
-                      {orderNumber !== null && (
-                        <span className="absolute top-0.5 right-1 text-xs font-bold text-white bg-black/60 px-1 rounded">
-                          {orderNumber}
-                        </span>
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
-            ))}
-          </div>
-        ))}
-        {selectedCell && anchorPosition && (
-          <MainBaseBuildingsSelector
-            onClose={handleCloseSelector}
-            onSelect={handleSelectBuilding}
-            usedBuildingNames={usedBuildingIds}
-            anchorPosition={anchorPosition}
-          />
-        )}
+                className="absolute left-1/2 top-full -translate-x-1/2 -mt-px w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-zinc-950"
+                aria-hidden
+              />
+            </div>
+          )}
+        </div>
       </div>
       {hoverTooltip && (
         <BuildingAttributesTooltip
