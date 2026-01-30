@@ -81,9 +81,12 @@ const MainBase = () => {
   return (
     <>
       <div className="relative group">
+        <h2 className="text-xs font-mono font-bold text-white/70 uppercase m-0 ml-auto">
+          Main Base
+        </h2>
         <div
           id="main-base-grid"
-          className="relative bg-zinc-900 border border-zinc-700 w-[432px] h-[368px] flex flex-col justify-center items-center gap-12 pl-12 pr-12 box-border"
+          className="relative bg-zinc-900 border border-zinc-700 w-[432px] h-[420px] flex flex-col justify-center items-center gap-12 pl-12 pr-12 box-border"
         >
           {layout.map((row, rowIndex) => (
             <div key={rowIndex} className="flex" id={`main-base-row-${rowIndex}`}>
@@ -140,7 +143,7 @@ const MainBase = () => {
                           />
                         )}
                         {orderNumber !== null && (
-                          <span className="absolute top-0.5 right-1 text-xs font-bold text-white bg-black/60 px-1 rounded">
+                          <span className="absolute top-0.5 right-1 text-xs font-bold text-white bg-black/60 px-1 ">
                             {orderNumber}
                           </span>
                         )}
@@ -164,14 +167,14 @@ const MainBase = () => {
           <button
             type="button"
             onClick={handleShare}
-            className="p-1.5 rounded text-zinc-300 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer hover:[&_img]:brightness-0 hover:[&_img]:invert"
+            className="p-1.5  text-zinc-300 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer hover:[&_img]:brightness-0 hover:[&_img]:invert"
             title="Share"
           >
             <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiB2aWV3Qm94PSIwIDAgNzIgNzIiIGZpbGw9IiM2YjcyODAiPjxnIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzZiNzI4MCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2UtbWl0ZXJsaW1pdD0iMTAiIHN0cm9rZS13aWR0aD0iMiI+PGNpcmNsZSBjeD0iNTAiIGN5PSIyMiIgcj0iNSIvPjxjaXJjbGUgY3g9IjIyIiBjeT0iMzgiIHI9IjUiLz48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI1Ii8+PHBhdGggZD0ibTI3IDQwbDE4IDhtMC0yM0wyNyAzNSIvPjwvZz48L3N2Zz4=" alt="Share" className="w-6 h-6 transition-[filter]" />
           </button>
           {shareCopied && (
             <div
-              className="absolute left-1/2 w-max top-full mt-1 -translate-x-1/2 z-10 bg-zinc-950 border border-zinc-700 rounded shadow-lg px-3 py-2 text-zinc-100 text-sm text-center pointer-events-none"
+              className="absolute left-1/2 w-max top-full mt-1 -translate-x-1/2 z-10 bg-zinc-950 border border-zinc-700  shadow-lg px-3 py-2 text-zinc-100 text-sm text-center pointer-events-none"
               role="tooltip"
             >
               Copied!

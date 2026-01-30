@@ -117,7 +117,7 @@ export default function BuildingAttributesTooltip({
 
   return (
     <div
-      className={`z-60 bg-zinc-900 border rounded shadow-lg pointer-events-none overflow-hidden ${borderClass}`}
+      className={`z-60 bg-zinc-900 border  shadow-lg pointer-events-none overflow-hidden ${borderClass}`}
       style={style}
     >
       <div className={`px-3 py-2 border-b border-zinc-700/80 ${bgClass}`}>

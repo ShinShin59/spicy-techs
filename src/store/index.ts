@@ -34,6 +34,9 @@ const initialBuildingOrder: BuildingOrderState = {
   corrino: [],
 }
 
+const DEFAULT_UNIT_SLOT_COUNT = 3
+export const MAX_UNIT_SLOT_COUNT = 30
+
 /** Saved build (local list, id not in URL) */
 export interface SavedBuild {
   id: string
@@ -42,6 +45,7 @@ export interface SavedBuild {
   selectedFaction: FactionLabel
   mainBaseState: Record<FactionLabel, MainBaseState>
   buildingOrder: BuildingOrderState
+  unitSlotCount: number
 }
 
 function generateBuildId(): string {
@@ -61,11 +65,13 @@ interface MainStore {
   selectedFaction: FactionLabel
   mainBaseState: Record<FactionLabel, MainBaseState>
   buildingOrder: BuildingOrderState
+  unitSlotCount: number
   currentBuildName: string
   currentBuildId: CurrentBuildId
   savedBuilds: SavedBuild[]
   lastSavedSnapshot: BuildSnapshot
   setMainBaseCell: (rowIndex: number, groupIndex: number, cellIndex: number, buildingId: string | null) => void
+  addUnitSlot: () => void
   loadSharedBuild: (payload: SharedBuildPayload) => void
   setCurrentBuildName: (name: string) => void
   saveCurrentBuild: (name?: string) => void
@@ -81,12 +87,14 @@ export function getBuildSnapshot(state: {
   selectedFaction: FactionLabel
   mainBaseState: Record<FactionLabel, MainBaseState>
   buildingOrder: BuildingOrderState
+  unitSlotCount: number
   currentBuildName: string
 }): string {
   return JSON.stringify({
     selectedFaction: state.selectedFaction,
     mainBaseState: state.mainBaseState,
     buildingOrder: state.buildingOrder,
+    unitSlotCount: state.unitSlotCount,
     currentBuildName: state.currentBuildName,
   })
 }
@@ -158,16 +166,24 @@ export const useMainStore = create<MainStore>()(
         }
         set({
           selectedFaction: faction,
+          unitSlotCount: DEFAULT_UNIT_SLOT_COUNT,
           currentBuildId: null,
           currentBuildName: getDefaultBuildName(faction, get().savedBuilds),
         })
       },
       mainBaseState: mainBasesState,
       buildingOrder: initialBuildingOrder,
+      unitSlotCount: DEFAULT_UNIT_SLOT_COUNT,
       currentBuildName: INITIAL_BUILD_NAME,
       currentBuildId: null,
       savedBuilds: [],
       lastSavedSnapshot: null,
+      addUnitSlot: () => {
+        const g = get()
+        if (g.unitSlotCount >= MAX_UNIT_SLOT_COUNT) return
+        set({ unitSlotCount: g.unitSlotCount + 1 })
+        get().saveCurrentBuild()
+      },
       setMainBaseCell: (rowIndex, groupIndex, cellIndex, buildingId) => {
         const { selectedFaction, mainBaseState, buildingOrder } = get()
         const factionState = mainBaseState[selectedFaction]
@@ -206,6 +222,7 @@ export const useMainStore = create<MainStore>()(
           selectedFaction: payload.f,
           mainBaseState: { ...mainBaseState, [payload.f]: stateForFaction },
           buildingOrder: { ...buildingOrder, [payload.f]: orderArray },
+          unitSlotCount: DEFAULT_UNIT_SLOT_COUNT,
           currentBuildId: null,
         })
       },
@@ -221,6 +238,7 @@ export const useMainStore = create<MainStore>()(
           selectedFaction,
           mainBaseState,
           buildingOrder,
+          unitSlotCount,
           savedBuilds,
           currentBuildName,
           currentBuildId,
@@ -237,6 +255,7 @@ export const useMainStore = create<MainStore>()(
           selectedFaction,
           mainBaseState,
           buildingOrder,
+          unitSlotCount,
           currentBuildName: finalName,
         })
         if (existing) {
@@ -247,6 +266,7 @@ export const useMainStore = create<MainStore>()(
             selectedFaction,
             mainBaseState: deepClone(mainBaseState),
             buildingOrder: deepClone(buildingOrder),
+            unitSlotCount,
             createdAt: Date.now(),
           }
           const newSavedBuilds = [...savedBuilds]
@@ -264,6 +284,7 @@ export const useMainStore = create<MainStore>()(
             selectedFaction,
             mainBaseState: deepClone(mainBaseState),
             buildingOrder: deepClone(buildingOrder),
+            unitSlotCount,
           }
           set({
             savedBuilds: [saved, ...savedBuilds],
@@ -277,16 +298,19 @@ export const useMainStore = create<MainStore>()(
         const { savedBuilds } = get()
         const build = savedBuilds.find((b) => b.id === id)
         if (!build) return
+        const unitSlotCount = typeof build.unitSlotCount === "number" ? build.unitSlotCount : DEFAULT_UNIT_SLOT_COUNT
         const snapshot = getBuildSnapshot({
           selectedFaction: build.selectedFaction,
           mainBaseState: build.mainBaseState,
           buildingOrder: build.buildingOrder,
+          unitSlotCount,
           currentBuildName: build.name,
         })
         set({
           selectedFaction: build.selectedFaction,
           mainBaseState: deepClone(build.mainBaseState),
           buildingOrder: deepClone(build.buildingOrder),
+          unitSlotCount,
           currentBuildName: build.name,
           currentBuildId: id,
           lastSavedSnapshot: snapshot,
@@ -302,6 +326,7 @@ export const useMainStore = create<MainStore>()(
             selectedFaction: "atreides",
             mainBaseState: mainBasesState,
             buildingOrder: initialBuildingOrder,
+            unitSlotCount: DEFAULT_UNIT_SLOT_COUNT,
             currentBuildName: getDefaultBuildName("atreides", newSaved),
             currentBuildId: null,
             lastSavedSnapshot: null,
@@ -317,6 +342,7 @@ export const useMainStore = create<MainStore>()(
           selectedFaction: "atreides",
           mainBaseState: mainBasesState,
           buildingOrder: initialBuildingOrder,
+          unitSlotCount: DEFAULT_UNIT_SLOT_COUNT,
           currentBuildName: getDefaultBuildName("atreides", savedBuilds),
           currentBuildId: null,
           lastSavedSnapshot: null,
@@ -334,13 +360,33 @@ export const useMainStore = create<MainStore>()(
             selectedFaction: g.selectedFaction,
             mainBaseState: g.mainBaseState,
             buildingOrder: g.buildingOrder,
+            unitSlotCount: g.unitSlotCount,
             currentBuildName: trimmed,
           })
         }
         set(updates)
       },
     }),
-    { name: "spicy-techs-main-store" }
+    {
+      name: "spicy-techs-main-store",
+      migrate: (persisted: unknown) => {
+        const p = persisted as Record<string, unknown> | null
+        if (!p || typeof p !== "object") return persisted as unknown as MainStore
+        const migrated = { ...p } as Record<string, unknown>
+        if (typeof migrated.unitSlotCount !== "number") {
+          migrated.unitSlotCount = DEFAULT_UNIT_SLOT_COUNT
+        }
+        const builds = migrated.savedBuilds
+        if (Array.isArray(builds)) {
+          migrated.savedBuilds = builds.map((b: Record<string, unknown>) =>
+            typeof (b as { unitSlotCount?: number }).unitSlotCount === "number"
+              ? b
+              : { ...b, unitSlotCount: DEFAULT_UNIT_SLOT_COUNT }
+          )
+        }
+        return migrated as unknown as MainStore
+      },
+    }
   )
 )
 
@@ -401,11 +447,13 @@ export function useIsBuildUpToDate(): boolean {
   const selectedFaction = useMainStore((s) => s.selectedFaction)
   const mainBaseState = useMainStore((s) => s.mainBaseState)
   const buildingOrder = useMainStore((s) => s.buildingOrder)
+  const unitSlotCount = useMainStore((s) => s.unitSlotCount)
   const currentBuildName = useMainStore((s) => s.currentBuildName)
   const currentSnapshot = getBuildSnapshot({
     selectedFaction,
     mainBaseState,
     buildingOrder,
+    unitSlotCount,
     currentBuildName,
   })
   return lastSavedSnapshot !== null && currentSnapshot === lastSavedSnapshot

@@ -75,7 +75,7 @@ const BuildRow = memo(function BuildRow({ build, onLoad, onDelete, onRename }: B
     onLoad(build.id)
   }
 
-  const rowClass = "group flex items-center gap-2 py-2 px-3 rounded border border-transparent text-sm min-h-[2.5rem]"
+  const rowClass = "group flex items-center gap-2 py-2 px-3  border border-transparent text-sm min-h-[2.5rem]"
 
   const factionIconSrc = getFactionIconPath(build.selectedFaction)
 
@@ -86,7 +86,7 @@ const BuildRow = memo(function BuildRow({ build, onLoad, onDelete, onRename }: B
           key={`${build.id}-faction`}
           src={factionIconSrc}
           alt=""
-          className="w-6 h-6 rounded shrink-0 object-cover"
+          className="w-6 h-6  shrink-0 object-cover"
           aria-hidden
         />
         <input
@@ -103,7 +103,7 @@ const BuildRow = memo(function BuildRow({ build, onLoad, onDelete, onRename }: B
             }
           }}
           onClick={(e) => e.stopPropagation()}
-          className={`flex-1 min-w-0 h-6 bg-zinc-700 text-white border border-zinc-600 rounded px-2 text-sm focus:outline-none focus:ring-2 focus:ring-inset ${getFactionFocusRingClass(build.selectedFaction)}`}
+          className={`flex-1 min-w-0 h-6 bg-zinc-700 text-white border border-zinc-600  px-2 text-sm focus:outline-none focus:ring-2 focus:ring-inset ${getFactionFocusRingClass(build.selectedFaction)}`}
           aria-label="New name"
         />
       </div>
@@ -127,7 +127,7 @@ const BuildRow = memo(function BuildRow({ build, onLoad, onDelete, onRename }: B
         key={`${build.id}-faction`}
         src={factionIconSrc}
         alt=""
-        className="w-6 h-6 rounded shrink-0 object-cover"
+        className="w-6 h-6  shrink-0 object-cover"
         aria-hidden
       />
       <span className="min-w-0 flex-1 truncate text-white">{build.name}</span>
@@ -139,7 +139,7 @@ const BuildRow = memo(function BuildRow({ build, onLoad, onDelete, onRename }: B
           setRenaming(true)
         }}
         aria-label="Rename"
-        className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-zinc-700 transition-all shrink-0"
+        className="opacity-0 group-hover:opacity-100 p-1  hover:bg-zinc-700 transition-all shrink-0"
       >
         <PencilIcon />
       </button>
@@ -151,7 +151,7 @@ const BuildRow = memo(function BuildRow({ build, onLoad, onDelete, onRename }: B
           onDelete(build.id)
         }}
         aria-label="Delete build"
-        className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-zinc-700 transition-all shrink-0"
+        className="opacity-0 group-hover:opacity-100 p-1 hover:bg-zinc-700 transition-all shrink-0"
       >
         <TrashIcon />
       </button>
@@ -186,7 +186,7 @@ const BuildsSidebar = ({ onClose }: BuildsSidebarProps) => {
           type="button"
           onClick={onClose}
           aria-label="Close"
-          className="p-1.5 rounded text-zinc-400 hover:text-white hover:bg-zinc-700 transition-colors"
+          className="p-1.5 text-zinc-400 hover:text-white hover:bg-zinc-700 transition-colors"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M18 6 6 18" />
