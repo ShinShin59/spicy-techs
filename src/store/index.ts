@@ -45,6 +45,9 @@ function generateBuildId(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`
 }
 
+/** Snapshot pour comparer l'état courant à la dernière sauvegarde (null = jamais sauvegardé) */
+export type BuildSnapshot = string | null
+
 interface MainStore {
   selectedFaction: FactionLabel
   setSelectedFaction: (faction: FactionLabel) => void
@@ -52,6 +55,7 @@ interface MainStore {
   buildingOrder: BuildingOrderState
   currentBuildName: string
   savedBuilds: SavedBuild[]
+  lastSavedSnapshot: BuildSnapshot
   setMainBaseCell: (rowIndex: number, groupIndex: number, cellIndex: number, buildingId: string | null) => void
   loadSharedBuild: (payload: SharedBuildPayload) => void
   setCurrentBuildName: (name: string) => void
@@ -59,6 +63,21 @@ interface MainStore {
   loadBuild: (id: string) => void
   deleteBuild: (id: string) => void
   renameBuild: (id: string, name: string) => void
+  resetToDefault: () => void
+}
+
+export function getBuildSnapshot(state: {
+  selectedFaction: FactionLabel
+  mainBaseState: Record<FactionLabel, MainBaseState>
+  buildingOrder: BuildingOrderState
+  currentBuildName: string
+}): string {
+  return JSON.stringify({
+    selectedFaction: state.selectedFaction,
+    mainBaseState: state.mainBaseState,
+    buildingOrder: state.buildingOrder,
+    currentBuildName: state.currentBuildName,
+  })
 }
 
 const DEFAULT_BUILD_NAME = "My build"
@@ -72,6 +91,7 @@ export const useMainStore = create<MainStore>()(
       buildingOrder: initialBuildingOrder,
       currentBuildName: DEFAULT_BUILD_NAME,
       savedBuilds: [],
+      lastSavedSnapshot: null,
       setMainBaseCell: (rowIndex, groupIndex, cellIndex, buildingId) => {
         const { selectedFaction, mainBaseState, buildingOrder } = get()
         const factionState = mainBaseState[selectedFaction]
@@ -114,7 +134,7 @@ export const useMainStore = create<MainStore>()(
       },
       setCurrentBuildName: (name) => set({ currentBuildName: name.trim() || DEFAULT_BUILD_NAME }),
       saveCurrentBuild: (name) => {
-        const { selectedFaction, mainBaseState, buildingOrder, savedBuilds } = get()
+        const { selectedFaction, mainBaseState, buildingOrder, savedBuilds, currentBuildName } = get()
         const factionNumRegex = new RegExp(`^${selectedFaction}\\s+(\\d+)$`)
         const existingNums = savedBuilds
           .map((b) => b.name.match(factionNumRegex)?.[1])
@@ -131,7 +151,8 @@ export const useMainStore = create<MainStore>()(
           mainBaseState: JSON.parse(JSON.stringify(mainBaseState)),
           buildingOrder: JSON.parse(JSON.stringify(buildingOrder)),
         }
-        set({ savedBuilds: [saved, ...savedBuilds] })
+        const snapshot = getBuildSnapshot({ selectedFaction, mainBaseState, buildingOrder, currentBuildName })
+        set({ savedBuilds: [saved, ...savedBuilds], lastSavedSnapshot: snapshot })
       },
       loadBuild: (id) => {
         const { savedBuilds } = get()
@@ -145,7 +166,43 @@ export const useMainStore = create<MainStore>()(
         })
       },
       deleteBuild: (id) => {
-        set({ savedBuilds: get().savedBuilds.filter((b) => b.id !== id) })
+        const { savedBuilds } = get()
+        const build = savedBuilds.find((b) => b.id === id)
+        if (!build) return
+        const current = get()
+        const currentSnapshot = getBuildSnapshot({
+          selectedFaction: current.selectedFaction,
+          mainBaseState: current.mainBaseState,
+          buildingOrder: current.buildingOrder,
+          currentBuildName: current.currentBuildName,
+        })
+        const buildSnapshot = getBuildSnapshot({
+          selectedFaction: build.selectedFaction,
+          mainBaseState: build.mainBaseState,
+          buildingOrder: build.buildingOrder,
+          currentBuildName: build.name,
+        })
+        if (currentSnapshot === buildSnapshot) {
+          set({
+            selectedFaction: "atreides",
+            mainBaseState: mainBasesState,
+            buildingOrder: initialBuildingOrder,
+            currentBuildName: DEFAULT_BUILD_NAME,
+            lastSavedSnapshot: null,
+            savedBuilds: savedBuilds.filter((b) => b.id !== id),
+          })
+        } else {
+          set({ savedBuilds: savedBuilds.filter((b) => b.id !== id) })
+        }
+      },
+      resetToDefault: () => {
+        set({
+          selectedFaction: "atreides",
+          mainBaseState: mainBasesState,
+          buildingOrder: initialBuildingOrder,
+          currentBuildName: DEFAULT_BUILD_NAME,
+          lastSavedSnapshot: null,
+        })
       },
       renameBuild: (id, name) => {
         const trimmed = name.trim()
@@ -157,7 +214,7 @@ export const useMainStore = create<MainStore>()(
     }),
     {
       name: "spicy-techs-main-store",
-      version: 3,
+      version: 4,
       migrate: (persistedState, version) => {
         // Migration depuis l'ancienne version ou données corrompues
         if (version === 0 || !persistedState) {
@@ -167,6 +224,7 @@ export const useMainStore = create<MainStore>()(
             buildingOrder: initialBuildingOrder,
             currentBuildName: DEFAULT_BUILD_NAME,
             savedBuilds: [],
+            lastSavedSnapshot: null,
           }
         }
         const state = persistedState as MainStore
@@ -178,6 +236,7 @@ export const useMainStore = create<MainStore>()(
             buildingOrder: initialBuildingOrder,
             currentBuildName: state.currentBuildName ?? DEFAULT_BUILD_NAME,
             savedBuilds: state.savedBuilds ?? [],
+            lastSavedSnapshot: (state as MainStore).lastSavedSnapshot ?? null,
           }
         }
         // Vérifie chaque faction
@@ -190,6 +249,7 @@ export const useMainStore = create<MainStore>()(
               buildingOrder: initialBuildingOrder,
               currentBuildName: state.currentBuildName ?? DEFAULT_BUILD_NAME,
               savedBuilds: state.savedBuilds ?? [],
+              lastSavedSnapshot: (state as MainStore).lastSavedSnapshot ?? null,
             }
           }
         }
@@ -200,6 +260,7 @@ export const useMainStore = create<MainStore>()(
             buildingOrder: initialBuildingOrder,
             currentBuildName: state.currentBuildName ?? DEFAULT_BUILD_NAME,
             savedBuilds: state.savedBuilds ?? [],
+            lastSavedSnapshot: (state as MainStore).lastSavedSnapshot ?? null,
           }
         }
         // Migration v2 -> v3 : ajouter currentBuildName et savedBuilds
@@ -208,6 +269,14 @@ export const useMainStore = create<MainStore>()(
             ...state,
             currentBuildName: state.currentBuildName ?? DEFAULT_BUILD_NAME,
             savedBuilds: Array.isArray(state.savedBuilds) ? state.savedBuilds : [],
+            lastSavedSnapshot: (state as MainStore).lastSavedSnapshot ?? null,
+          }
+        }
+        // Migration v3 -> v4 : ajouter lastSavedSnapshot
+        if (version === 3) {
+          return {
+            ...state,
+            lastSavedSnapshot: (state as MainStore).lastSavedSnapshot ?? null,
           }
         }
         return state

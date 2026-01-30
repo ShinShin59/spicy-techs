@@ -133,50 +133,41 @@ const BuildsSidebar = ({ onClose }: BuildsSidebarProps) => {
   const sortedSaved = [...savedBuilds].sort((a, b) => b.createdAt - a.createdAt)
 
   return (
-    <>
-      <div
-        role="presentation"
-        className="fixed inset-0 bg-black/50 z-40"
-        onClick={onClose}
-        onKeyDown={(e) => e.key === "Escape" && onClose()}
-        aria-hidden
-      />
-      <aside
-        className="fixed top-1/2 right-3 z-50 w-[280px] max-w-[90vw] max-h-[70vh] -translate-y-1/2 flex flex-col rounded-lg border border-zinc-700 bg-zinc-900 shadow-xl overflow-hidden"
-        aria-label="Liste des builds"
-      >
-        <div className="flex items-center justify-between p-3 border-b border-zinc-700 shrink-0">
-          <h2 className="text-sm font-semibold text-zinc-200">Builds</h2>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Fermer"
-            className="p-1.5 rounded text-zinc-400 hover:text-white hover:bg-zinc-700 transition-colors"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M18 6 6 18" />
-              <path d="m6 6 12 12" />
-            </svg>
-          </button>
-        </div>
+    <aside
+      className="fixed top-1/2 right-3 z-50 w-[280px] max-w-[90vw] max-h-[70vh] -translate-y-1/2 flex flex-col rounded-lg border border-zinc-700 bg-zinc-900 shadow-xl overflow-hidden"
+      aria-label="Liste des builds"
+    >
+      <div className="flex items-center justify-between p-3 border-b border-zinc-700 shrink-0">
+        <h2 className="text-sm font-semibold text-zinc-200">Builds</h2>
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Fermer"
+          className="p-1.5 rounded text-zinc-400 hover:text-white hover:bg-zinc-700 transition-colors"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M18 6 6 18" />
+            <path d="m6 6 12 12" />
+          </svg>
+        </button>
+      </div>
 
-        <div className="overflow-y-auto p-3 space-y-2 min-h-0">
-          {sortedSaved.length === 0 ? (
-            <p className="text-sm text-zinc-500 py-4 text-center">Aucun build sauvegardé</p>
-          ) : (
-            sortedSaved.map((build) => (
-              <BuildRow
-                key={build.id}
-                build={build}
-                onLoad={() => loadBuild(build.id)}
-                onDelete={() => deleteBuild(build.id)}
-                onRename={(name) => renameBuild(build.id, name)}
-              />
-            ))
-          )}
-        </div>
-      </aside>
-    </>
+      <div className="overflow-y-auto p-3 space-y-2 min-h-0">
+        {sortedSaved.length === 0 ? (
+          <p className="text-sm text-zinc-500 py-4 text-center">Aucun build sauvegardé</p>
+        ) : (
+          sortedSaved.map((build) => (
+            <BuildRow
+              key={build.id}
+              build={build}
+              onLoad={() => loadBuild(build.id)}
+              onDelete={() => deleteBuild(build.id)}
+              onRename={(name) => renameBuild(build.id, name)}
+            />
+          ))
+        )}
+      </div>
+    </aside>
   )
 }
 

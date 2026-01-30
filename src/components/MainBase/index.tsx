@@ -110,6 +110,7 @@ const MainBase = () => {
     const buildingName = mainBaseState[rowIndex]?.[groupIndex]?.[cellIndex]
     if (buildingName !== null) {
       setMainBaseCell(rowIndex, groupIndex, cellIndex, null)
+      setHoverTooltip(null)
     }
   }
 
@@ -195,7 +196,7 @@ const MainBase = () => {
             />
           )}
         </div>
-        <div className="absolute bottom-2 right-2">
+        <div className="absolute top-2 right-2">
           <button
             type="button"
             onClick={handleShare}
@@ -209,12 +210,12 @@ const MainBase = () => {
           </button>
           {(shareHovered || shareCopied || shareFadingOut) && (
             <div
-              className={`absolute left-1/2 w-max bottom-full mb-1 -translate-x-1/2 z-10 bg-zinc-950 border border-zinc-700 rounded shadow-lg px-3 py-2 text-zinc-100 text-sm text-center pointer-events-none transition-opacity duration-200 ${shareFadingOut ? "opacity-0" : "opacity-100"}`}
+              className={`absolute left-1/2 w-max top-full mt-1 -translate-x-1/2 z-10 bg-zinc-950 border border-zinc-700 rounded shadow-lg px-3 py-2 text-zinc-100 text-sm text-center pointer-events-none transition-opacity duration-200 ${shareFadingOut ? "opacity-0" : "opacity-100"}`}
               role="tooltip"
             >
               {shareCopied || shareFadingOut ? "Copied!" : "Copy to clipboard"}
               <div
-                className="absolute left-1/2 top-full -translate-x-1/2 -mt-px w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-zinc-950"
+                className="absolute left-1/2 bottom-full -translate-x-1/2 mb-px w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-b-[6px] border-b-zinc-950"
                 aria-hidden
               />
             </div>
