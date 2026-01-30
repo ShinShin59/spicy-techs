@@ -5,8 +5,8 @@ export interface MainBuilding {
   id: string
   name: string
   attributes: string[]
-  factionExclusive?: FactionLabel
-  replacesGeneric?: string
+  excludeFromFaction?: FactionLabel
+  onlyForFaction?: FactionLabel
 }
 
 const mainBuildings = mainBuildingsData as MainBuilding[]
@@ -25,11 +25,11 @@ const MainBaseBuildingsSelector = ({
 }: MainBaseBuildingsSelectorProps) => {
   const selectedFaction = useMainStore((s) => s.selectedFaction)
   const availableBuildings = mainBuildings.filter((building) => {
-    debugger
-    return building.factionExclusive === selectedFaction || !building.factionExclusive
+    return (
+      building.excludeFromFaction !== selectedFaction &&
+      (!building.onlyForFaction || building.onlyForFaction === selectedFaction)
+    )
   })
-
-  console.log(availableBuildings)
 
   return (
     <div
@@ -68,9 +68,14 @@ const MainBaseBuildingsSelector = ({
                 onClick={() => onSelect(building.id)}
                 className="p-4 bg-zinc-800 hover:bg-zinc-700 border border-zinc-600 rounded-lg text-left transition-colors">
                 <img src={`/assets/buildings/${building.id}.png`} alt={building.name} className="w-10 h-10" />
-                {building.factionExclusive && (
+                {building.onlyForFaction && (
                   <span className="mt-2 inline-block text-xs px-2 py-0.5 bg-amber-900/50 text-amber-300 rounded">
-                    {building.factionExclusive}
+                    {building.onlyForFaction.charAt(0).toUpperCase() + building.onlyForFaction.slice(1)}
+                  </span>
+                )}
+                {building.excludeFromFaction && (
+                  <span className="mt-2 inline-block text-xs px-2 py-0.5 bg-red-900/50 text-red-300 rounded">
+                    {building.excludeFromFaction.charAt(0).toUpperCase() + building.excludeFromFaction.slice(1)}
                   </span>
                 )}
               </button>)))}
