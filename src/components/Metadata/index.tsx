@@ -61,7 +61,7 @@ function EditableField({ value, placeholder, icon, onSave }: EditableFieldProps)
             }
           }}
           placeholder={placeholder}
-          className="flex-1 min-w-0 h-7 bg-zinc-700 text-white border border-zinc-600 px-2 text-sm focus:outline-none focus:ring-1 focus:ring-amber-500"
+          className="flex-1 min-w-0 h-7 bg-zinc-700 text-white border border-zinc-600 px-2 text-sm focus:outline-none focus:ring-1 focus:ring-accent"
         />
       </div>
     )
@@ -71,7 +71,7 @@ function EditableField({ value, placeholder, icon, onSave }: EditableFieldProps)
     <button
       type="button"
       onClick={() => setEditing(true)}
-      className="flex items-center gap-2 w-full text-left group hover:bg-zinc-800 px-1 py-0.5 -mx-1 transition-colors"
+      className="flex items-center gap-2 w-full text-left group hover:bg-zinc-800 px-1 py-0.5 -mx-1 transition-colors cursor-pointer"
     >
       {icon}
       <span className={`text-sm truncate ${value ? "text-zinc-200" : "text-zinc-500 italic"}`}>
@@ -158,13 +158,13 @@ export default function Metadata() {
                 }
               }}
               placeholder="Write commentary here"
-              className="w-full min-h-24 bg-zinc-700 text-white text-sm border border-zinc-600 px-2 py-1.5 resize-none focus:outline-none focus:ring-1 focus:ring-amber-500"
+              className="w-full min-h-24 bg-zinc-700 text-white text-sm border border-zinc-600 px-2 py-1.5 resize-none focus:outline-none focus:ring-1 focus:ring-accent"
             />
           ) : (
             <button
               type="button"
               onClick={() => setCommentaryEditing(true)}
-              className="w-full text-left hover:bg-zinc-800 px-1 py-1 -mx-1 transition-colors min-h-12"
+              className="w-full text-left hover:bg-zinc-800 px-1 py-1 -mx-1 transition-colors min-h-12 cursor-pointer"
             >
               <span className={`text-sm whitespace-pre-wrap wrap-break-word ${metadata.commentary ? "text-zinc-200" : "text-zinc-500 italic"}`}>
                 {metadata.commentary || "Write commentary here"}

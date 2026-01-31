@@ -6,6 +6,7 @@ import heroesData from "@/components/Units/hero.json"
 import councillorsData from "@/components/Councillors/councillors.json"
 
 const FACTION_ICON_PATH = "/images/faction_buttons_square"
+const HUD_IMAGES_PATH = "/images/hud"
 const MAINBASE_ICONS_PATH = "/images/mainbase_icons"
 const GEAR_ICONS_PATH = "/images/gear"
 const UNIT_ICONS_PATH = "/images/units"
@@ -53,7 +54,15 @@ export function isImagePreloaded(src: string): boolean {
  * This runs synchronously when this module is first imported,
  * before any React components render.
  */
+export function getHudImagePath(fileName: string): string {
+  return `${HUD_IMAGES_PATH}/${fileName}`
+}
+
 function initPreload(): void {
+  // Preload HUD images (slot, background_hero)
+  preloadImage(getHudImagePath("slot.png"))
+  preloadImage(getHudImagePath("background_hero.png"))
+
   // Preload faction icons
   FACTION_LABELS.forEach((faction) => {
     preloadImage(getFactionIconPath(faction as FactionLabel))

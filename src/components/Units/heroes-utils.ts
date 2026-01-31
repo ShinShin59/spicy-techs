@@ -9,6 +9,8 @@ export interface HeroData {
   faction: FactionLabel
   imageName: string
   desc: string
+  stats?: { health?: number; power?: number; armor?: number; range?: number; minRange?: number }
+  attributes?: string[]
 }
 
 /** Maps store faction label to heroes.json key */

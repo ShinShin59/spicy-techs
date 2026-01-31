@@ -38,7 +38,7 @@ const FactionSelector = () => {
         aria-expanded={open}
         aria-haspopup="listbox"
         aria-label="Select faction"
-        className="flex items-center gap-2 py-1.5 pl-10 pr-2 text-sm font-medium  border border-zinc-600 bg-zinc-800 text-zinc-200 hover:bg-zinc-700 transition-colors bg-no-repeat bg-size-[1.25rem_1.25rem] bg-position-[left_0.70rem_center] min-w-[140px] justify-between"
+        className="flex items-center gap-2 py-1.5 pl-10 pr-2 text-sm font-medium  border border-zinc-600 bg-zinc-800 text-zinc-200 hover:bg-zinc-700 transition-colors cursor-pointer bg-no-repeat bg-size-[1.25rem_1.25rem] bg-position-[left_0.70rem_center] min-w-[140px] justify-between"
         style={{ backgroundImage: `url(${getFactionIconPath(selectedFaction)})` }}
       >
         <span className="capitalize">{selectedFaction}</span>
@@ -59,7 +59,7 @@ const FactionSelector = () => {
                 <button
                   type="button"
                   onClick={() => handleSelect(faction)}
-                  className={`flex w-full items-center gap-2 py-2 px-3 text-left text-sm capitalize transition-colors ${isSelected
+                  className={`flex w-full items-center gap-2 py-2 px-3 text-left text-sm capitalize transition-colors cursor-pointer ${isSelected
                     ? "bg-zinc-800 text-zinc-100"
                     : "text-zinc-300 hover:bg-zinc-800 hover:text-zinc-100"
                     }`}

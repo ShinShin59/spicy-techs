@@ -113,10 +113,10 @@ const Units = () => {
 
               const isHeroSlotEmpty = isHeroSlot && !hasUnit
               const cellStyle = isHeroSlot
-                ? "bg-[url('/images/background_hero.png')] bg-cover bg-center"
+                ? "bg-[url('/images/hud/background_hero.png')] bg-cover bg-center"
                 : hasUnit
-                  ? "bg-slot"
-                  : "bg-slot hover:bg-slot-hover"
+                  ? "bg-[url('/images/hud/slot.png')] bg-cover bg-center"
+                  : "bg-[url('/images/hud/slot.png')] bg-cover bg-center hover:brightness-110"
               const heroSlotMuted = isHeroSlotEmpty ? "opacity-70" : ""
 
               return (

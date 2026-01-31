@@ -132,7 +132,7 @@ const Armory = () => {
                       key={slotIndex}
                       role="button"
                       tabIndex={0}
-                      className={`relative w-[64px] h-[64px] cursor-pointer flex items-center justify-center overflow-hidden border border-zinc-700 ${hasGear ? "bg-slot" : "bg-slot hover:bg-slot-hover"
+                      className={`relative w-[64px] h-[64px] cursor-pointer flex items-center justify-center overflow-hidden border border-zinc-700 ${hasGear ? "bg-[url('/images/hud/slot.png')] bg-cover bg-center" : "bg-[url('/images/hud/slot.png')] bg-cover bg-center hover:brightness-110"
                         }`}
                       id={`armory-slot-${unitIndex}-${slotIndex}`}
                       onClick={(e) => handleSlotClick(e, unitIndex, slotIndex)}

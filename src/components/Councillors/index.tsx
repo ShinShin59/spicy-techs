@@ -69,7 +69,7 @@ const Councillors = () => {
                   role="button"
                   tabIndex={0}
                   className={`${cellClass} relative cursor-pointer ${
-                    hasCouncillor ? "bg-slot" : "bg-slot hover:bg-slot-hover"
+                    hasCouncillor ? "bg-[url('/images/hud/slot.png')] bg-cover bg-center" : "bg-[url('/images/hud/slot.png')] bg-cover bg-center hover:brightness-110"
                   }`}
                   id={`councillors-slot-${index}`}
                   onClick={handleSlotClick}

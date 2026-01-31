@@ -60,8 +60,8 @@ const CouncillorsSelector = ({
   const handleClick = (councillor: CouncillorData) => {
     const isSelected = selectedIds.includes(councillor.id)
     onSelect(councillor.id)
-    // Close when selecting the second councillor (adding to 1 existing)
-    if (!isSelected && selectedIds.length === 1) {
+    // Close when selecting and we end up with 2 (adding 2nd or replacing one of 2)
+    if (!isSelected && selectedIds.length >= 1) {
       onClose()
     }
   }

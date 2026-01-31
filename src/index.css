@@ -7,9 +7,13 @@
   --color-expansion: #4A9C6B;
   --color-error: #8B3A3A;
 
-  /* Slot backgrounds */
-  --color-slot: #303443;
-  --color-slot-hover: #3a3d52;
+  /* Slot and top bar background */
+  --color-slot: #24262e;
+  --color-slot-hover: #2e3038;
+
+  /* Button accent - subtle cornflower blue */
+  --color-accent: #6b7b94;
+  --color-accent-hover: #545f72;
 
   /* Faction colors from game data */
   --color-faction-atreides: #26764C;

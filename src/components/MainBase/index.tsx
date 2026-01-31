@@ -111,7 +111,7 @@ const MainBase = () => {
 
                     const cellBgClass = hasBuilding && buildingData
                       ? getCategoryBgClass(buildingData.category)
-                      : 'bg-slot hover:bg-slot-hover'
+                      : "bg-[url('/images/hud/slot.png')] bg-cover bg-center hover:brightness-110"
 
                     return (
                       <div
