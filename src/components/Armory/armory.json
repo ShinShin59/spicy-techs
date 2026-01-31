@@ -777,6 +777,17 @@
     "image": "optmized_bed_arrangement.png"
   },
   {
+    "name": "Prana Bindu Initiation",
+    "unit": [
+      "Trooper",
+    ],
+    "faction": [
+      "Atreides"
+    ],
+    "attributes": [],
+    "image": "prana_bindu_initiation.png"
+  },
+  {
     "name": "Parrying Armguards",
     "unit": [
       "Trooper",
@@ -1258,7 +1269,7 @@
       "Ecaz"
     ],
     "attributes": [
-      "[E_Trooper]s at [Short_Range] gain ::target_effects2::"
+      "[Squires] at [Short_Range] gain ::target_effects2::"
     ],
     "image": "vow_of_honor.png"
   },

@@ -31,7 +31,7 @@ const Units = () => {
               +
             </button>
           )}
-          {Array.from({ length: unitSlotCount }).map((_, index) => (
+          {Array.from({ length: unitSlotCount - 1 }).map((_, index) => (
             <div
               key={`unit-${index}`}
               className={cellClass}
