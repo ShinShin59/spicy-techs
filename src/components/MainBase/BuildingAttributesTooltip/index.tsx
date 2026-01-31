@@ -73,7 +73,7 @@ function parseAttributeLine(line: string): Segment[] {
 function AttributeLine({ line }: { line: string }) {
   const segments = parseAttributeLine(line)
   return (
-    <span className="text-zinc-300 text-sm">
+    <span className="text-zinc-300 text-xs">
       {segments.map((seg, idx) => {
         if (seg.type === "bracket") {
           return (
@@ -126,13 +126,20 @@ export default function BuildingAttributesTooltip({
         </div>
       </div>
       {building.attributes.length > 0 ? (
-        <ul className="list-disc list-inside space-y-0.5 text-zinc-400 px-3 py-2">
-          {building.attributes.map((attr, i) => (
-            <li key={i}>
-              <AttributeLine line={attr} />
-            </li>
-          ))}
-        </ul>
+        <div className="px-3 py-1.5 border-b border-zinc-700/50 space-y-1">
+          <ul className="list-disc list-inside space-y-0.5 text-zinc-300 text-xs">
+            {building.attributes.map((attr, i) => (
+              <li key={i}>
+                <AttributeLine line={attr} />
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+      {building.desc ? (
+        <div className="px-3 py-2 text-gray-500 text-xs italic leading-snug">
+          {building.desc}
+        </div>
       ) : null}
     </div>
   )

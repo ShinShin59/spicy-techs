@@ -1,6 +1,7 @@
 [
   {
     "name": "Administrative Hall",
+    "desc": "The city hall centralizes the administrative formalities and acts as a nexus for your civic and political power.",
     "attributes": [
       "+10 [Solari] production in [Villages]",
       "+20% [Authority] production"
@@ -9,6 +10,7 @@
   },
   {
     "name": "Recycling Vats",
+    "desc": "A complex but streamlined system of used water collection gathers the precious fluids to several recycling stations called \"clear nodes\", and then reinjects it as clean water into the system.",
     "attributes": [
       "+10 [Water]",
       "+10 5 per [target]"
@@ -17,6 +19,7 @@
   },
   {
     "name": "CHOAM branch",
+    "desc": "Hosting a CHOAM branch is not mandatory in any way, but a wise leader will quickly find it quite advantageous, as it is sure to give them an edge in their economic endeavors.",
     "attributes": [
       "Special effects when the base exchange rate is at least 10",
       "+10 max [Spice]"
@@ -25,6 +28,7 @@
   },
   {
     "name": "Harvester Works",
+    "desc": "This structure trains technical harvesting crews and gives them tools to improve their work. Specialists of spice collection help optimize the process from start to finish.",
     "attributes": [
       "+20% [harvester]s gathering rate per [Economy] [Buildings] in their [Village]",
       "10% [harvester] [crew] cost"
@@ -34,6 +38,7 @@
   },
   {
     "name": "Spice Laboratory",
+    "desc": "[Spice] has some unusual properties that deserve to be studied in a lab, and where else to put such a facility than right here, on Arrakis. Maybe someday a replacement can be found for the melange.",
     "attributes": [
       "+10 [Knowledge] per exploited [SpiceArea]",
       "-2 [FuelCell] requirements for [harvester]"
@@ -43,6 +48,7 @@
   },
   {
     "name": "Mason Guild",
+    "desc": "The many dangers of Arrakis makes hosting a Mason Guild an indisputable asset for anyone looking to build sizeable infrastructure on the planet.",
     "attributes": [
       "+20% [Plascrete] production",
       "+10 [Solari] production in fully built [Village]s"
@@ -51,6 +57,7 @@
   },
   {
     "name": "Recruitment Center",
+    "desc": "This structure streamlines the process of enrollment for military units as well as make recruitment easier, ultimately bringing in more manpower to your forces.",
     "attributes": [
       "+20% [Manpower] production",
       "+300 max [Manpower]"
@@ -59,6 +66,7 @@
   },
   {
     "name": "Barracks",
+    "desc": "Allows your military forces to recover and organize more effectively by giving them a place to fall back to and store their equipment.",
     "attributes": [
       "+20% [Life] to Military Units",
       "+20% [Experience] gains for Military Units"
@@ -67,6 +75,7 @@
   },
   {
     "name": "Fusion Plant",
+    "desc": "While the usage of atomic weapons is forbidden by the Great Convention, civilian nuclear physics is widely used by the Great House for cheap efficient energy production. What they do with that energy is nobody's business.",
     "attributes": [
       "+10 [FuelCell]"
     ],
@@ -74,6 +83,7 @@
   },
   {
     "name": "Military Academy",
+    "desc": "The Academy is a huge complex equipped with all the modern arsenal. Multiple classes of cadets can take courses in parallel and the concentration of pedagogical knowledge insures a constant stream of new soldiers.",
     "attributes": [
       "+2 [TrainingSlot]",
       "Units regenerate [Life] +10% faster"
@@ -82,6 +92,7 @@
   },
   {
     "name": "Command Post",
+    "desc": "Optimizes logistics for your armies and improves communication down the chain of command, ultimately making your forces more efficient and dangerous.",
     "attributes": [
       "+10 [Command Points]",
       "-10% Military Unit [Solari] [Upkeep]"
@@ -90,6 +101,7 @@
   },
   {
     "name": "Research Center",
+    "desc": "Scientia potentia est: knowledge is power. The research center hosts the best scientists and gives them the means of making breakthroughs.",
     "attributes": [
       "+20% [Knowledge]",
       "+20% [Hegemony] gain from fulfilling a Spice Contract",
@@ -99,6 +111,7 @@
   },
   {
     "name": "Embassy",
+    "desc": "An important node of your power, where diplomats and other powerful people exchange information or work on political agreements.",
     "attributes": [
       "+10 [influence] production"
     ],
@@ -107,6 +120,7 @@
   },
   {
     "name": "Bazaar",
+    "desc": "You can find a little bit of everything in a busy Bazaar, making any neighborhood more vibrant and dynamic.",
     "attributes": [
       "+10 [Solari] per active trade with a [Sietch]",
       "+10 [Water] per active trade with a [Sietch]",
@@ -117,12 +131,14 @@
   },
   {
     "name": "Al-Gaib Temple",
+    "desc": "The temple draws the faithful, strengthening their will to serve for the good of the Fremen.",
     "attributes": [],
     "onlyForFaction": "fremen",
     "category": "Statecraft"
   },
   {
     "name": "Landsraad Quarters",
+    "desc": "A place to host dignitaries and important people during their time in your capital is an essential key to any political play in the Landsraad.",
     "attributes": [
       "+200 max [Influence]"
     ],
@@ -131,11 +147,13 @@
   },
   {
     "name": "Intelligence Agency",
+    "desc": "The battle for information is best fought with the proper structures, and this agency contains everything you need to conduct proper espionage and counter-intelligence missions.",
     "attributes": [],
     "category": "Statecraft"
   },
   {
     "name": "Council Chamber",
+    "desc": "The best way to have an influence over the Landsraad is to make sure you are always in the midst of it, ever present and seemingly indispensable.",
     "attributes": [
       "50% of [Votes] and [Influence] spent on a resolution choice that failed are reimbursed as [Influence]",
       "-50% [Standing] losses"
@@ -145,6 +163,7 @@
   },
   {
     "name": "Interrogation Center",
+    "desc": "Information must flow. More often than not, it must be extracted from human beings, like sap is from a tree. Most abhor the method, but the Harkonnens will never shy away from a proven tool.",
     "attributes": [
       "Gain 10 [Intel] when killing enemy units",
       "+15% chance to brainwash captured [Agent]"
@@ -154,6 +173,7 @@
   },
   {
     "name": "Black Market Branch",
+    "desc": "Money is not the only thing that can be earned from commercial exchanges, especially when said transactions are on the verge of legality.",
     "attributes": [
       "+2% [Spice], [Plascrete], [Manpower] and [Intel] production per [UWHeadquarters]"
     ],
@@ -162,6 +182,7 @@
   },
   {
     "name": "Emperor Monument",
+    "desc": "It is important to remind everyone of their position within the faufreluches, and their duties towards the Padishah Emperor. This monument symbolizes the unity of the Imperium and the legitimacy of its ruler.",
     "attributes": [
       "Generate 10 [Hegemony] per day"
     ],
@@ -170,6 +191,7 @@
   },
   {
     "name": "Museum of Unbound Arts",
+    "desc": "The creative process is a paradoxical one. It thrives on the tension between the constrained and the free. A truly radical museum would cage only the most extreme and unrestrained pieces of art.",
     "attributes": [
       "Removes limit on number of [Masterpiece]s per [Village]",
       "Every [Masterpiece] on the planet gives [Ecaz]: various effects"
@@ -179,6 +201,7 @@
   },
   {
     "name": "Neural Core",
+    "desc": "The Nodal Network is fundamentally centralized on the [IxianCore]. A strong Neural Core, made of data and processing centers supported by specialized algorithms, reinforce the whole network.",
     "attributes": [
       "Connected [Neural Nodes] produce 10 [FuelCell]",
       "+20% [Knowledge] per connected [Neural Nodes]"

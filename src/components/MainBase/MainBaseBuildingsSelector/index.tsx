@@ -6,6 +6,7 @@ import mainBuildingsData from "./main-buildings.json"
 
 export interface MainBuilding {
   name: string
+  desc?: string
   attributes: string[]
   category: 'Economy' | 'Military' | 'Statecraft'
   excludeFromFaction?: FactionLabel
