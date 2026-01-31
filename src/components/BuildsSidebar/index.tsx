@@ -90,7 +90,7 @@ const BuildRow = memo(function BuildRow({ build, isSelected, onLoad, onDuplicate
     onLoad(build.id)
   }
 
-  const rowClass = "group flex items-center gap-2 py-2 px-3  border border-transparent text-sm min-h-[2.5rem]"
+  const rowClass = "group relative flex items-center gap-2 py-2 px-3 border text-sm min-h-[2.5rem]"
 
   const factionIconSrc = getFactionIconPath(build.selectedFaction)
 
@@ -101,7 +101,7 @@ const BuildRow = memo(function BuildRow({ build, isSelected, onLoad, onDuplicate
           key={`${build.id}-faction`}
           src={factionIconSrc}
           alt=""
-          className="w-6 h-6  shrink-0 object-cover"
+          className="w-6 h-6 shrink-0 object-cover"
           aria-hidden
         />
         <input
@@ -118,7 +118,7 @@ const BuildRow = memo(function BuildRow({ build, isSelected, onLoad, onDuplicate
             }
           }}
           onClick={(e) => e.stopPropagation()}
-          className={`flex-1 min-w-0 h-6 bg-zinc-700 text-white border border-zinc-600  px-2 text-sm focus:outline-none focus:ring-2 focus:ring-inset ${getFactionRingClass(build.selectedFaction)}`}
+          className={`flex-1 min-w-0 h-6 bg-zinc-700 text-white border border-zinc-600 px-2 text-sm focus:outline-none focus:ring-2 focus:ring-inset ${getFactionRingClass(build.selectedFaction)}`}
           aria-label="New name"
         />
       </div>
@@ -146,46 +146,49 @@ const BuildRow = memo(function BuildRow({ build, isSelected, onLoad, onDuplicate
         key={`${build.id}-faction`}
         src={factionIconSrc}
         alt=""
-        className="w-6 h-6  shrink-0 object-cover"
+        className="w-6 h-6 shrink-0 object-cover"
         aria-hidden
       />
-      <span className="min-w-0 flex-1 truncate text-white">{build.name}</span>
-      <button
-        type="button"
-        data-pencil
-        onClick={(e) => {
-          e.stopPropagation()
-          setRenaming(true)
-        }}
-        aria-label="Rename"
-        className="opacity-0 group-hover:opacity-100 p-1 hover:bg-zinc-700 transition-all shrink-0"
-      >
-        <PencilIcon />
-      </button>
-      <button
-        type="button"
-        data-copy
-        onClick={(e) => {
-          e.stopPropagation()
-          onDuplicate(build.id)
-        }}
-        aria-label="Duplicate build"
-        className="opacity-0 group-hover:opacity-100 p-1 hover:bg-zinc-700 transition-all shrink-0"
-      >
-        <CopyIcon />
-      </button>
-      <button
-        type="button"
-        data-trash
-        onClick={(e) => {
-          e.stopPropagation()
-          onDelete(build.id)
-        }}
-        aria-label="Delete build"
-        className="opacity-0 group-hover:opacity-100 p-1 hover:bg-zinc-700 transition-all shrink-0"
-      >
-        <TrashIcon />
-      </button>
+      <span className="min-w-0 flex-1 truncate text-white pr-1">{build.name}</span>
+      {/* Action buttons - absolutely positioned on hover with background */}
+      <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity bg-zinc-800 rounded px-1 py-0.5">
+        <button
+          type="button"
+          data-pencil
+          onClick={(e) => {
+            e.stopPropagation()
+            setRenaming(true)
+          }}
+          aria-label="Rename"
+          className="p-1 hover:bg-zinc-700 rounded transition-colors"
+        >
+          <PencilIcon />
+        </button>
+        <button
+          type="button"
+          data-copy
+          onClick={(e) => {
+            e.stopPropagation()
+            onDuplicate(build.id)
+          }}
+          aria-label="Duplicate build"
+          className="p-1 hover:bg-zinc-700 rounded transition-colors"
+        >
+          <CopyIcon />
+        </button>
+        <button
+          type="button"
+          data-trash
+          onClick={(e) => {
+            e.stopPropagation()
+            onDelete(build.id)
+          }}
+          aria-label="Delete build"
+          className="p-1 hover:bg-zinc-700 rounded transition-colors"
+        >
+          <TrashIcon />
+        </button>
+      </div>
     </div>
   )
 })
@@ -201,8 +204,6 @@ const BuildsSidebar = ({ onClose }: BuildsSidebarProps) => {
   const duplicateBuild = useMainStore((s) => s.duplicateBuild)
   const deleteBuild = useMainStore((s) => s.deleteBuild)
   const renameBuild = useMainStore((s) => s.renameBuild)
-
-  const sortedSaved = [...savedBuilds].sort((a, b) => b.createdAt - a.createdAt)
 
   return (
     <aside
@@ -225,10 +226,10 @@ const BuildsSidebar = ({ onClose }: BuildsSidebarProps) => {
       </div>
 
       <div className="overflow-y-auto p-3 space-y-2 min-h-0">
-        {sortedSaved.length === 0 ? (
+        {savedBuilds.length === 0 ? (
           <p className="text-sm text-zinc-500 py-4 text-center">No saved builds</p>
         ) : (
-          sortedSaved.map((build) => (
+          savedBuilds.map((build) => (
             <BuildRow
               key={build.id}
               build={build}

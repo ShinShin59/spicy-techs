@@ -479,7 +479,7 @@ export const useMainStore = create<MainStore>()(
             unitSlots: deepClone(unitSlots),
             panelVisibility: deepClone(panelVisibility),
             metadata: deepClone(metadata),
-            createdAt: Date.now(),
+            // Keep original createdAt - don't update on save
           }
           const newSavedBuilds = [...savedBuilds]
           newSavedBuilds[existingIndex] = updated
