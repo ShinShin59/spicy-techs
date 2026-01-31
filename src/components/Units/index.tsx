@@ -1,7 +1,15 @@
 import { useState } from "react"
-import { useMainStore, useCurrentUnitSlots, useCurrentUnitsOrder, getUnitsOrderNumber, MAX_UNIT_SLOT_COUNT } from "@/store"
+import {
+  useMainStore,
+  useCurrentUnitSlots,
+  useCurrentUnitsOrder,
+  getUnitsOrderNumber,
+  MAX_UNIT_SLOT_COUNT,
+  HERO_SLOT_INDEX,
+} from "@/store"
 import { getUnitIconPath } from "@/utils/assetPaths"
 import { getUnitById, type UnitData } from "./units-utils"
+import { getHeroById, getHeroIconPath, isHeroId } from "./heroes-utils"
 import UnitsSelector from "./UnitsSelector"
 import UnitTooltip from "./UnitTooltip"
 import OrderBadge from "@/components/OrderBadge"
@@ -28,7 +36,7 @@ const Units = () => {
   const [selectedSlotIndex, setSelectedSlotIndex] = useState<number | null>(null)
   const [anchorPosition, setAnchorPosition] = useState<AnchorPosition | null>(null)
   const [hoverTooltip, setHoverTooltip] = useState<{
-    unit: UnitData
+    unit: UnitData | { name: string; desc?: string }
     anchorRect: { left: number; top: number; width: number; height: number }
   } | null>(null)
 
@@ -48,17 +56,16 @@ const Units = () => {
       setSelectedSlotIndex(null)
       setAnchorPosition(null)
 
-      // Auto-add a new slot if all slots are now filled
+      // Auto-add a new slot if all unit slots (excluding hero) are now filled
       if (unitId !== null && unitSlotCount < MAX_UNIT_SLOT_COUNT) {
-        // Count how many empty slots remain after this selection
         let emptyCount = 0
         for (let i = 0; i < unitSlotCount; i++) {
+          if (i === HERO_SLOT_INDEX) continue
           const slotValue = i === selectedSlotIndex ? unitId : unitSlots[i]
           if (slotValue === null || slotValue === undefined) {
             emptyCount++
           }
         }
-        // Only add a new slot if there are no empty slots left
         if (emptyCount === 0) {
           addUnitSlot()
         }
@@ -75,7 +82,11 @@ const Units = () => {
     e.preventDefault()
     const unitId = unitSlots[slotIndex]
     if (unitId !== null && unitId !== undefined) {
-      removeUnitSlot(slotIndex)
+      if (slotIndex === HERO_SLOT_INDEX) {
+        setUnitSlot(HERO_SLOT_INDEX, null)
+      } else {
+        removeUnitSlot(slotIndex)
+      }
       setHoverTooltip(null)
     }
   }
@@ -92,38 +103,58 @@ const Units = () => {
         >
           <div className="grid grid-cols-5 gap-4">
             {Array.from({ length: unitSlotCount }).map((_, index) => {
-              const unitId = unitSlots[index]
-              const unitData = unitId ? getUnitById(selectedFaction, unitId) : null
-              const hasUnit = unitId !== null && unitId !== undefined && unitData !== undefined
+              const unitId = unitSlots[index] ?? null
+              const isHeroSlot = index === HERO_SLOT_INDEX
+              const heroData = unitId && isHeroId(unitId) ? getHeroById(selectedFaction, unitId) : null
+              const unitData = unitId && !isHeroId(unitId) ? getUnitById(selectedFaction, unitId) : null
+              const displayData = heroData ?? unitData ?? null
+              const hasUnit = unitId !== null && unitId !== undefined && displayData !== null
               const orderNumber = getUnitsOrderNumber(unitsOrder, index)
+
+              const isHeroSlotEmpty = isHeroSlot && !hasUnit
+              const cellStyle = isHeroSlotEmpty
+                ? "bg-zinc-800/60 border-zinc-600/60 hover:bg-zinc-700/60"
+                : hasUnit
+                  ? "bg-zinc-700"
+                  : "bg-zinc-600 hover:bg-zinc-500"
 
               return (
                 <div
                   key={`unit-${index}`}
                   role="button"
                   tabIndex={0}
-                  className={`${cellClass} relative cursor-pointer ${hasUnit ? "bg-zinc-700" : "bg-zinc-600 hover:bg-zinc-500"}`}
+                  className={`${cellClass} relative cursor-pointer ${cellStyle}`}
                   id={`units-slot-${index}`}
+                  title={isHeroSlotEmpty ? "Hero slot (optional)" : undefined}
                   onClick={(e) => handleSlotClick(e, index)}
                   onContextMenu={(e) => handleSlotRightClick(e, index)}
                   onMouseEnter={
-                    hasUnit && unitData
+                    hasUnit && displayData
                       ? (e) => {
-                        const rect = e.currentTarget.getBoundingClientRect()
-                        setHoverTooltip({
-                          unit: unitData,
-                          anchorRect: {
-                            left: rect.left,
-                            top: rect.top,
-                            width: rect.width,
-                            height: rect.height,
-                          },
-                        })
-                      }
+                          const rect = e.currentTarget.getBoundingClientRect()
+                          setHoverTooltip({
+                            unit: displayData,
+                            anchorRect: {
+                              left: rect.left,
+                              top: rect.top,
+                              width: rect.width,
+                              height: rect.height,
+                            },
+                          })
+                        }
                       : undefined
                   }
                   onMouseLeave={hasUnit ? () => setHoverTooltip(null) : undefined}
                 >
+                  {hasUnit && heroData && (
+                    <img
+                      src={getHeroIconPath(selectedFaction, heroData.imageName)}
+                      alt={heroData.name}
+                      loading="eager"
+                      decoding="sync"
+                      className="w-16 h-16 object-contain"
+                    />
+                  )}
                   {hasUnit && unitData && (
                     <img
                       src={getUnitIconPath(selectedFaction, unitData.name)}
@@ -151,6 +182,7 @@ const Units = () => {
               onClose={handleCloseSelector}
               onSelect={handleSelectUnit}
               anchorPosition={anchorPosition}
+              heroOnly={selectedSlotIndex === HERO_SLOT_INDEX}
             />
           )}
         </div>

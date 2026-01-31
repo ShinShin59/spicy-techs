@@ -1,5 +1,6 @@
 import type { FactionLabel } from "../../store"
 import unitsData from "./units.json"
+import { isHeroId } from "./heroes-utils"
 
 export interface UnitData {
   id: string
@@ -19,10 +20,11 @@ const factionToUnitsKey: Record<FactionLabel, keyof typeof unitsData> = {
   corrino: "Corrino",
 }
 
-/** Get units for a faction */
+/** Get units for a faction (regular units only, excludes heroes) */
 export function getUnitsForFaction(faction: FactionLabel): UnitData[] {
   const key = factionToUnitsKey[faction]
-  return (unitsData[key] as UnitData[]) || []
+  const units = (unitsData[key] as UnitData[]) || []
+  return units.filter((u) => !isHeroId(u.id))
 }
 
 /** Get a unit by its ID for a specific faction */

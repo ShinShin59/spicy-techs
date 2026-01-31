@@ -2,6 +2,7 @@ import { useEffect } from "react"
 import MainBase from "./components/MainBase"
 import Armory from "./components/Armory"
 import Units from "./components/Units"
+import Councillors from "./components/Councillors"
 import Topbar from "./components/Topbar"
 import BuildsSidebar from "./components/BuildsSidebar"
 import Metadata from "./components/Metadata"
@@ -31,6 +32,7 @@ function App() {
         <BuildLayout
           mainBase={panelVisibility.mainBaseOpen ? <MainBase /> : undefined}
           units={panelVisibility.unitsOpen ? <Units /> : undefined}
+          councillors={panelVisibility.councillorsOpen ? <Councillors /> : undefined}
           armory={panelVisibility.armoryOpen ? <Armory /> : undefined}
         />
       </div>

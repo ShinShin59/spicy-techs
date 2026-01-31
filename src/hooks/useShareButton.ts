@@ -7,6 +7,8 @@ export function useShareButton() {
   const mainBaseState = useMainStore((s) => s.mainBaseState)
   const buildingOrder = useMainStore((s) => s.buildingOrder)
   const armoryState = useMainStore((s) => s.armoryState)
+  const unitSlots = useMainStore((s) => s.unitSlots)
+  const councillorSlots = useMainStore((s) => s.councillorSlots)
   const [copied, setCopied] = useState(false)
   const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -22,6 +24,8 @@ export function useShareButton() {
       state: mainBaseState[selectedFaction],
       order: buildingOrder[selectedFaction] ?? [],
       armory: armoryState[selectedFaction],
+      units: unitSlots[selectedFaction],
+      councillors: councillorSlots[selectedFaction],
     }
     const encoded = encodeBuildPayload(payload)
     const url = getShareUrl(encoded)

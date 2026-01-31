@@ -2,11 +2,13 @@ import { FACTION_LABELS, type FactionLabel } from "@/store"
 import armoryData from "@/components/Armory/armory.json"
 import mainBuildingsData from "@/components/MainBase/MainBaseBuildingsSelector/main-buildings.json"
 import unitsData from "@/components/Units/units.json"
+import heroesData from "@/components/Units/hero.json"
 
 const FACTION_ICON_PATH = "/images/faction_buttons_square"
 const MAINBASE_ICONS_PATH = "/images/mainbase_icons"
 const GEAR_ICONS_PATH = "/images/gear"
 const UNIT_ICONS_PATH = "/images/units"
+const COUNCILLOR_ICONS_PATH = "/images/councillors"
 
 export function getFactionIconPath(faction: FactionLabel): string {
   return `${FACTION_ICON_PATH}/${faction}.png`
@@ -23,6 +25,10 @@ export function getGearIconPath(imageFileName: string): string {
 export function getUnitIconPath(faction: FactionLabel, unitName: string): string {
   const fileName = unitName.toLowerCase().replace(/ /g, "_")
   return `${UNIT_ICONS_PATH}/${faction}/${fileName}.png`
+}
+
+export function getCouncillorIconPath(faction: FactionLabel, imageFileName: string): string {
+  return `${COUNCILLOR_ICONS_PATH}/${faction}/${imageFileName}`
 }
 
 /** Set of URLs that have been preloaded */
@@ -81,6 +87,17 @@ function initPreload(): void {
     if (faction) {
       units.forEach((unit) => {
         preloadImage(getUnitIconPath(faction, unit.name))
+      })
+    }
+  })
+
+  // Preload hero icons
+  const heroesByFaction = heroesData as Record<string, { imageName: string }[]>
+  Object.entries(heroesByFaction).forEach(([factionKey, heroes]) => {
+    const faction = factionToLabel[factionKey]
+    if (faction && Array.isArray(heroes)) {
+      heroes.forEach((hero) => {
+        preloadImage(`${UNIT_ICONS_PATH}/${faction}/${hero.imageName}.png`)
       })
     }
   })

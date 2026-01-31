@@ -13,6 +13,7 @@ export interface SharedBuildPayload {
   order: BuildingCoords[]
   armory?: (string | null)[][]
   units?: (string | null)[]
+  councillors?: (string | null)[]
 }
 
 export function encodeBuildPayload(payload: SharedBuildPayload): string {

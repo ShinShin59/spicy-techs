@@ -12,6 +12,7 @@ const Topbar = ({ onCreate }: TopbarProps) => {
   const toggleMainBase = useMainStore((s) => s.toggleMainBase)
   const toggleArmory = useMainStore((s) => s.toggleArmory)
   const toggleUnits = useMainStore((s) => s.toggleUnits)
+  const toggleCouncillors = useMainStore((s) => s.toggleCouncillors)
   const toggleMetadata = useMainStore((s) => s.toggleMetadata)
 
   const panelBtnClass = (open: boolean) =>
@@ -55,6 +56,15 @@ const Topbar = ({ onCreate }: TopbarProps) => {
         className={panelBtnClass(panelVisibility.unitsOpen)}
       >
         Units
+      </button>
+      <button
+        type="button"
+        onClick={toggleCouncillors}
+        aria-pressed={panelVisibility.councillorsOpen}
+        aria-label="Toggle Councillors"
+        className={panelBtnClass(panelVisibility.councillorsOpen)}
+      >
+        Councillors
       </button>
       <button
         type="button"
