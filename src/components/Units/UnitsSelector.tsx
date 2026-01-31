@@ -72,14 +72,6 @@ const UnitsSelector = ({
         className="z-50 bg-zinc-900 border border-zinc-700 flex flex-col"
         style={popupStyle}
       >
-        {/* Title */}
-        <div className="flex items-center justify-center gap-4 px-4 py-2 border-b border-zinc-700">
-          <div className="flex-1 h-px bg-zinc-600" />
-          <h2 className="text-sm font-bold tracking-wider text-zinc-200 uppercase">
-            {heroOnly ? "Select Hero" : "Select Unit"}
-          </h2>
-          <div className="flex-1 h-px bg-zinc-600" />
-        </div>
 
         {/* Units/Heroes grid */}
         <div className="flex p-3 gap-1 flex-wrap">

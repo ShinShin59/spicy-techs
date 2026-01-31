@@ -99,7 +99,7 @@ const ArmoryGearSelector = ({
                   disabled={isSelected}
                   className={`
                     w-full h-full border-2 border-zinc-600 flex items-center justify-center
-                    bg-zinc-700/50
+                    bg-slot/50
                     ${isSelected
                       ? "grayscale opacity-50 cursor-not-allowed"
                       : "hover:brightness-125 hover:border-zinc-400 cursor-pointer"

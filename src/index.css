@@ -7,6 +7,10 @@
   --color-expansion: #4A9C6B;
   --color-error: #8B3A3A;
 
+  /* Slot backgrounds */
+  --color-slot: #303443;
+  --color-slot-hover: #3a3d52;
+
   /* Faction colors from game data */
   --color-faction-atreides: #26764C;
   --color-faction-harkonnen: #90121B;

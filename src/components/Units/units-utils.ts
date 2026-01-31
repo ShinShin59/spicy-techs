@@ -2,10 +2,21 @@ import type { FactionLabel } from "../../store"
 import unitsData from "./units.json"
 import { isHeroId } from "./heroes-utils"
 
+export interface UnitStats {
+  health: number
+  power: number
+  armor: number
+  range?: number
+  minRange?: number
+}
+
 export interface UnitData {
   id: string
   name: string
   desc: string
+  cpCost?: number
+  stats?: UnitStats
+  attributes?: string[]
   equipment: string[]
 }
 

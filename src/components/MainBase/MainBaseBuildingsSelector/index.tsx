@@ -103,26 +103,10 @@ const MainBaseBuildingsSelector = ({
         className="z-50 bg-zinc-900 border border-zinc-700 flex flex-col"
         style={popupStyle}
       >
-        {/* Title */}
-        <div className="flex items-center justify-center gap-4 px-6 py-3 border-b border-zinc-700">
-          <div className="flex-1 h-px bg-zinc-600" />
-          <h2 className="text-lg font-bold tracking-wider text-zinc-200 uppercase">
-            Buildings
-          </h2>
-          <div className="flex-1 h-px bg-zinc-600" />
-        </div>
-
         {/* Categories container */}
         <div className="flex p-4 gap-4 shrink-0">
           {CATEGORIES.map((category) => (
             <div key={category} className="flex flex-col shrink-0">
-              {/* Category header */}
-              <div className={`flex items-center gap-2 mb-3 ${categoryColors[category]}`}>
-                {/* Placeholder icon 16x16 */}
-                <div className="w-4 h-4 bg-white shrink-0" />
-                <span className="text-sm font-medium whitespace-nowrap">{category}</span>
-              </div>
-
               {/* Buildings grid */}
               <div className="grid grid-cols-3 gap-1">
                 {buildingsByCategory[category].map((building) => {

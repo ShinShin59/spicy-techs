@@ -58,7 +58,12 @@ const CouncillorsSelector = ({
   )
 
   const handleClick = (councillor: CouncillorData) => {
+    const isSelected = selectedIds.includes(councillor.id)
     onSelect(councillor.id)
+    // Close when selecting the second councillor (adding to 1 existing)
+    if (!isSelected && selectedIds.length === 1) {
+      onClose()
+    }
   }
 
   return (
@@ -95,8 +100,8 @@ const CouncillorsSelector = ({
                   className={`
                     w-full h-full flex items-center justify-center border-2
                     ${isSelected
-                      ? "border-zinc-400 bg-zinc-600"
-                      : "border-zinc-600 bg-zinc-700/50 hover:brightness-125 hover:border-zinc-500"
+                      ? "border-zinc-400 bg-slot"
+                      : "border-zinc-600 bg-slot/50 hover:brightness-125 hover:border-zinc-500"
                     }
                     cursor-pointer
                   `}

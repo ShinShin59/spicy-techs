@@ -111,7 +111,7 @@ const MainBase = () => {
 
                     const cellBgClass = hasBuilding && buildingData
                       ? getCategoryBgClass(buildingData.category)
-                      : 'bg-zinc-600 hover:bg-zinc-500'
+                      : 'bg-slot hover:bg-slot-hover'
 
                     return (
                       <div

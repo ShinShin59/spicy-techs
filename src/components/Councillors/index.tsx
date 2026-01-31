@@ -69,7 +69,7 @@ const Councillors = () => {
                   role="button"
                   tabIndex={0}
                   className={`${cellClass} relative cursor-pointer ${
-                    hasCouncillor ? "bg-zinc-700" : "bg-zinc-600 hover:bg-zinc-500"
+                    hasCouncillor ? "bg-slot" : "bg-slot hover:bg-slot-hover"
                   }`}
                   id={`councillors-slot-${index}`}
                   onClick={handleSlotClick}
