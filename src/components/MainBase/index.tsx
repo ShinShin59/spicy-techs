@@ -80,7 +80,7 @@ const MainBase = () => {
 
   return (
     <>
-      <div className="relative group">
+      <div className="relative group flex flex-col">
         <h2 className="text-xs font-mono font-bold text-white/70 uppercase m-0 ml-auto">
           Main Base
         </h2>

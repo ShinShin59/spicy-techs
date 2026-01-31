@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect, useRef } from "react"
 import { useMainStore, type FactionLabel } from "@/store"
 import { getBuildingIconPath } from "@/utils/assetPaths"
 import BuildingAttributesTooltip from "../BuildingAttributesTooltip"
@@ -13,13 +13,6 @@ export interface MainBuilding {
 }
 
 const mainBuildings = mainBuildingsData as MainBuilding[]
-
-const preloadedImages: HTMLImageElement[] = []
-mainBuildings.forEach((building) => {
-  const img = new Image()
-  img.src = getBuildingIconPath(building.name)
-  preloadedImages.push(img)
-})
 
 interface AnchorPosition {
   x: number
@@ -56,11 +49,23 @@ const MainBaseBuildingsSelector = ({
   usedBuildingNames,
   anchorPosition,
 }: MainBaseBuildingsSelectorProps) => {
+  const modalRef = useRef<HTMLDivElement>(null)
   const selectedFaction = useMainStore((s) => s.selectedFaction)
   const [hoverTooltip, setHoverTooltip] = useState<{
     building: MainBuilding
     anchorRect: { left: number; top: number; width: number; height: number }
   } | null>(null)
+
+  // Close on outside click (allows click to propagate to other elements)
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
+        onClose()
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [onClose])
 
   // Memoize available buildings (only changes when faction changes)
   const availableBuildings = useMemo(() => {
@@ -92,17 +97,11 @@ const MainBaseBuildingsSelector = ({
 
   return (
     <>
-      {/* Transparent backdrop to close on outside click */}
-      <div
-        className="fixed inset-0 z-40"
-        onClick={onClose}
-      />
-
       {/* Modal content */}
       <div
+        ref={modalRef}
         className="z-50 bg-zinc-900 border border-zinc-700 flex flex-col"
         style={popupStyle}
-        onClick={(e) => e.stopPropagation()}
       >
         {/* Title */}
         <div className="flex items-center justify-center gap-4 px-6 py-3 border-b border-zinc-700">

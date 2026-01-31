@@ -11,6 +11,7 @@ export interface SharedBuildPayload {
   f: FactionLabel
   state: MainBaseState
   order: BuildingCoords[]
+  armory?: (string | null)[][]
 }
 
 export function encodeBuildPayload(payload: SharedBuildPayload): string {

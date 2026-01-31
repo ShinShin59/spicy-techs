@@ -6,3 +6,16 @@
   --color-statecraft: #4A8B9C;
   --color-error: #8B3A3A;
 }
+
+/* Prevent image dragging */
+img {
+  -webkit-user-drag: none;
+  user-drag: none;
+  pointer-events: none;
+}
+
+/* Re-enable pointer events for clickable images */
+button img,
+a img {
+  pointer-events: auto;
+}

@@ -183,22 +183,6 @@
         "SelfSufficiency"
       ],
       "flags": 0
-    },
-    {
-      "id": "F_Frigate",
-      "name": "Altar",
-      "desc": "Made from odds and end of many ships, this aeronef can be customized to meet the needs of its makers.",
-      "equipment": [
-        "AdditionalCannons_Altar",
-        "ListeningDevices_Altar",
-        "HeavyArmor_Altar",
-        "WindTraps_Altar",
-        "AdditionalSails_Altar",
-        "ReconStations_Altar",
-        "SandCloud_Altar",
-        "FreedomSymbol_Altar"
-      ],
-      "flags": 2097664
     }
   ],
   "Smugglers": [

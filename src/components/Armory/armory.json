@@ -13,17 +13,6 @@
     "image": "DIY_kit.png"
   },
   {
-    "name": "Sky Facade",
-    "unit": [
-      "Altar"
-    ],
-    "faction": [
-      "Fremen"
-    ],
-    "attributes": [],
-    "image": "additional_cannons.png"
-  },
-  {
     "name": "Ambush Camouflage",
     "unit": [
       "Mobile Turret"
@@ -43,15 +32,6 @@
       }
     ],
     "image": "ambush_camouflage.png"
-  },
-  {
-    "name": "Analysis Visor",
-    "unit": [],
-    "faction": [],
-    "attributes": [
-      "::target_effects:: for each ally Conscript nearby (x::target_stacking_limit:: max)"
-    ],
-    "image": "analysis_visor.png"
   },
   {
     "name": "Anatomical Scanner",
@@ -89,13 +69,6 @@
     "image": "assassin_armors.png"
   },
   {
-    "name": "Assassin Gear",
-    "unit": [],
-    "faction": [],
-    "attributes": [],
-    "image": "assassin_gear.png"
-  },
-  {
     "name": "Automatic Weapons",
     "unit": [
       "Ranger"
@@ -130,7 +103,7 @@
       "Sardaukar"
     ],
     "faction": [
-      "NoFaction"
+      "Corrino"
     ],
     "attributes": [
       "::s_percent_value:: attack speed per allied unit at [Medium_Range]"
@@ -147,22 +120,6 @@
     ],
     "attributes": [],
     "image": "bazookas.png"
-  },
-  {
-    "name": "Better Ammunitions",
-    "unit": [],
-    "faction": [],
-    "attributes": [
-      "::s_value:: [Solari] [!Upkeep]"
-    ],
-    "image": "better_ammunitions.png"
-  },
-  {
-    "name": "Better Protections",
-    "unit": [],
-    "faction": [],
-    "attributes": [],
-    "image": "better_protections.png"
   },
   {
     "name": "Big Banner",
@@ -204,18 +161,6 @@
       "Regain [Life] lost that way at the end of combat"
     ],
     "image": "blood_thinner.png"
-  },
-  {
-    "name": "Caffeine Pills",
-    "unit": [],
-    "faction": [],
-    "attributes": [
-      {
-        "desc": "Outside combat, gain: ::target_effects_list::",
-        "target_effects_list": []
-      }
-    ],
-    "image": "caffeine_pills.png"
   },
   {
     "name": "Camouflage Fabric",
@@ -267,7 +212,7 @@
       "Fedaykin"
     ],
     "faction": [
-      "NoFaction",
+      "Fremen",
       "Locals"
     ],
     "attributes": [
@@ -334,18 +279,6 @@
     "image": "dismantling_tools.png"
   },
   {
-    "name": "Disruptive Ammunition",
-    "unit": [],
-    "faction": [],
-    "attributes": [
-      {
-        "desc": "The target is [TDisruptiveAmmunition_Debuff] (x::target_stacking_limit:: max): ::target_effects_list::",
-        "target_effects_list": []
-      }
-    ],
-    "image": "disruptive_ammunition.png"
-  },
-  {
     "name": "Fractal Frequencies",
     "unit": [
       "Resonance Drone"
@@ -359,15 +292,6 @@
       "Requires ::s_value:: [FuelCell]"
     ],
     "image": "disruptive_field.png"
-  },
-  {
-    "name": "Distortion Umbrella",
-    "unit": [],
-    "faction": [],
-    "attributes": [
-      "Gives ::target_effects:: to allied unit at [Melee_Effect]"
-    ],
-    "image": "distorsion_umbrella.png"
   },
   {
     "name": "Distracting Flashes",
@@ -401,7 +325,7 @@
       "Warrior"
     ],
     "faction": [
-      "NoFaction"
+      "Fremen"
     ],
     "attributes": [
       "::s_value:: [Life] per [Water]"
@@ -422,13 +346,6 @@
       "::target_effects:: while engaged in melee"
     ],
     "image": "dual_gun.png"
-  },
-  {
-    "name": "Dual Swords",
-    "unit": [],
-    "faction": [],
-    "attributes": [],
-    "image": "dual_swords.png"
   },
   {
     "name": "Elacca Injector",
@@ -472,13 +389,6 @@
     "image": "endocrine_arouser.png"
   },
   {
-    "name": "Enhanced Weapons",
-    "unit": [],
-    "faction": [],
-    "attributes": [],
-    "image": "enhanced_weapons.png"
-  },
-  {
     "name": "Evasion Booster",
     "unit": [
       "Support Drone"
@@ -501,22 +411,6 @@
       "Units damaged by <good>2</good> or more [!C_Special]s accrue [Burned_Trait] ::percent_value:: faster"
     ],
     "image": "exotic_compounds.png"
-  },
-  {
-    "name": "Experimental Combustible",
-    "unit": [],
-    "faction": [],
-    "attributes": [
-      "Ignores half of the enemy armor"
-    ],
-    "image": "experimental_combustible.png"
-  },
-  {
-    "name": "Experimental Weapons",
-    "unit": [],
-    "faction": [],
-    "attributes": [],
-    "image": "experimental_weapon.png"
   },
   {
     "name": "Feedback Gate",
@@ -572,26 +466,12 @@
     "image": "folding_frame.png"
   },
   {
-    "name": "Food Additives",
-    "unit": [],
-    "faction": [],
-    "attributes": [],
-    "image": "food_additives.png"
-  },
-  {
-    "name": "Fremen Assault Gear",
-    "unit": [],
-    "faction": [],
-    "attributes": [],
-    "image": "fremen_assault_gear.png"
-  },
-  {
     "name": "Frightening Reputation",
     "unit": [
       "Sardaukar"
     ],
     "faction": [
-      "NoFaction"
+      "Corrino"
     ],
     "attributes": [
       "Every execution gives ::value:: [Influence]"
@@ -634,19 +514,6 @@
     ],
     "attributes": [],
     "image": "heavy_armor.png"
-  },
-  {
-    "name": "Makeshift Workshop",
-    "unit": [
-      "Altar"
-    ],
-    "faction": [
-      "Fremen"
-    ],
-    "attributes": [
-      "Regenerates outside of combat"
-    ],
-    "image": "heavy_armor_altar.png"
   },
   {
     "name": "Heavy Loads",
@@ -693,33 +560,6 @@
       }
     ],
     "image": "hibernation_breastplate.png"
-  },
-  {
-    "name": "Hunter's Eyes",
-    "unit": [],
-    "faction": [],
-    "attributes": [
-      "Can detect units with [Camouflage] in [Long_Range]"
-    ],
-    "image": "hunters_eyes.png"
-  },
-  {
-    "name": "Improved Alloy",
-    "unit": [],
-    "faction": [],
-    "attributes": [
-      "::s_value:: [Solari] [!Upkeep]"
-    ],
-    "image": "improved_alloy.png"
-  },
-  {
-    "name": "Improved Medicines",
-    "unit": [],
-    "faction": [],
-    "attributes": [
-      "Nearby ally non-mechanical units gain ::s_percent_value:: [Life] regeneration per day"
-    ],
-    "image": "improved_medicine.png"
   },
   {
     "name": "Incendiary Ammo",
@@ -780,39 +620,6 @@
     "image": "last_stand_protocls.png"
   },
   {
-    "name": "Light Alloy",
-    "unit": [],
-    "faction": [],
-    "attributes": [
-      "::percent:: Military Unit [Solari] [!Upkeep]"
-    ],
-    "image": "light_alloys.png"
-  },
-  {
-    "name": "Light Armor",
-    "unit": [],
-    "faction": [],
-    "attributes": [
-      "Lose [::target::]",
-      "Lose [::target::]"
-    ],
-    "image": "light_armor.png"
-  },
-  {
-    "name": "Wreck Harness",
-    "unit": [
-      "Altar"
-    ],
-    "faction": [
-      "Fremen"
-    ],
-    "attributes": [
-      "Killing enemy flying units at [Long_Range] gives ::s_percent_value:: [Scraps]",
-      "Other ally Military Units at [Melee_Strict] gain ::target_effects:: (x::target_stacking_limit:: max)"
-    ],
-    "image": "listening_devices.png"
-  },
-  {
     "name": "Live Reformation",
     "unit": [
       "Conscript Swordman",
@@ -825,13 +632,6 @@
       "When [Life] is above 50%, transfer ::percent_value:: [Life] per day to a unit of the same kind with less [Life] at [Melee_Effect]"
     ],
     "image": "live_reformation.png"
-  },
-  {
-    "name": "Long Rifle",
-    "unit": [],
-    "faction": [],
-    "attributes": [],
-    "image": "long_rifles.png"
   },
   {
     "name": "Loud Bang",
@@ -898,13 +698,6 @@
       "::s_value:: [Life]"
     ],
     "image": "meat_armor.png"
-  },
-  {
-    "name": "Medkits",
-    "unit": [],
-    "faction": [],
-    "attributes": [],
-    "image": "medkits.png"
   },
   {
     "name": "Memory Implant",
@@ -984,13 +777,6 @@
     "image": "optmized_bed_arrangement.png"
   },
   {
-    "name": "Padded Shielding",
-    "unit": [],
-    "faction": [],
-    "attributes": [],
-    "image": "padded_shielding.png"
-  },
-  {
     "name": "Parrying Armguards",
     "unit": [
       "Trooper",
@@ -1004,7 +790,6 @@
       "Harkonnen",
       "Atreides",
       "Corrino",
-      "NoFaction",
       "Ecaz"
     ],
     "attributes": [],
@@ -1048,19 +833,6 @@
     "image": "pre-loaded_weapons.png"
   },
   {
-    "name": "Pre-Loaded Weapons",
-    "unit": [
-      "Mobile Turret"
-    ],
-    "faction": [
-      "Fremen"
-    ],
-    "attributes": [
-      "::s_percent_value:: [Power] when attacking undetected"
-    ],
-    "image": "preloaded_veapon.png"
-  },
-  {
     "name": "Prickly Spear",
     "unit": [
       "Squire"
@@ -1100,20 +872,6 @@
       "Gain [Power] depending on distance from target, up to ::s_value:: [Power] at [Long_Range]"
     ],
     "image": "propelling_ammo.png"
-  },
-  {
-    "name": "Recon Stations",
-    "unit": [
-      "Altar"
-    ],
-    "faction": [
-      "Fremen"
-    ],
-    "attributes": [
-      "Increases vision range",
-      "Detect [Sneak_Trait] unit in a [VeryLong_Range]"
-    ],
-    "image": "recon_stations.png"
   },
   {
     "name": "Recursive Lens",
@@ -1178,7 +936,7 @@
       "Warrior"
     ],
     "faction": [
-      "NoFaction"
+      "Fremen"
     ],
     "attributes": [],
     "image": "sand_cover.png"
@@ -1189,7 +947,7 @@
       "Sardaukar"
     ],
     "faction": [
-      "NoFaction"
+      "Corrino"
     ],
     "attributes": [
       "Raises the execution threshold by ::percent_value:: as if there were <good>5</good> more units around the [!C_Elite]"
@@ -1249,28 +1007,12 @@
     "image": "shadow_scan.png"
   },
   {
-    "name": "Sharpened Tools",
-    "unit": [],
-    "faction": [],
-    "attributes": [
-      "Ignores half of the enemy armor"
-    ],
-    "image": "sharpen_tools.png"
-  },
-  {
-    "name": "Sharpened Blade",
-    "unit": [],
-    "faction": [],
-    "attributes": [],
-    "image": "sharpened_blade.png"
-  },
-  {
     "name": "Shelter Maps",
     "unit": [
       "Warrior"
     ],
     "faction": [
-      "NoFaction"
+      "Fremen"
     ],
     "attributes": [],
     "image": "shelter_maps.png"
@@ -1307,31 +1049,6 @@
       "Gain ::value:: [Intel] when delivering [S_Drone_Buff] to a [!Village]"
     ],
     "image": "shock_dampener.png"
-  },
-  {
-    "name": "Shrapnel Ammunitions",
-    "unit": [],
-    "faction": [],
-    "attributes": [],
-    "image": "shrapnel_ammunition.png"
-  },
-  {
-    "name": "Seismic Ammo",
-    "unit": [],
-    "faction": [],
-    "attributes": [
-      "Requires ::s_value:: [::target::]"
-    ],
-    "image": "sismic_ammo.png"
-  },
-  {
-    "name": "Skirmish Gear",
-    "unit": [],
-    "faction": [],
-    "attributes": [
-      "Enemy units engaged in combat suffer ::target_effects::"
-    ],
-    "image": "skirmish_gear.png"
   },
   {
     "name": "Small Formation",
@@ -1412,20 +1129,6 @@
     "image": "stinging_gaz.png"
   },
   {
-    "name": "Storm Sails",
-    "unit": [
-      "Altar"
-    ],
-    "faction": [
-      "Fremen"
-    ],
-    "attributes": [
-      "Ignores damage from [Sandstorm]s",
-      "::s_percent_value:: [Speed] in a [Sandstorm]"
-    ],
-    "image": "storm_sails.png"
-  },
-  {
     "name": "Supporting Field",
     "unit": [
       "Support Drone"
@@ -1454,42 +1157,6 @@
       "Gives ::target_effects:: to non-Conscript allied units at [Short_Range]"
     ],
     "image": "supporting_tactics.png"
-  },
-  {
-    "name": "Suppressive Coordination",
-    "unit": [],
-    "faction": [],
-    "attributes": [
-      {
-        "desc": "The target is [TSuppressiveCoordination_Debuff] (x::target_stacking_limit:: max): ::target_effects_list::",
-        "target_effects_list": [
-          "::s_value:: maximum stacks of [A_Soldier_Debuff]"
-        ]
-      }
-    ],
-    "image": "suppressive_coordination.png"
-  },
-  {
-    "name": "Symbol of Freedom",
-    "unit": [
-      "Altar"
-    ],
-    "faction": [
-      "Fremen"
-    ],
-    "attributes": [
-      "Gain ::value:: [Authority] when liberating a [!Village] in the region"
-    ],
-    "image": "symbol_of_freedom.png"
-  },
-  {
-    "name": "Tempered Sword",
-    "unit": [],
-    "faction": [],
-    "attributes": [
-      "::s_value:: [Solari] [!Upkeep]"
-    ],
-    "image": "tempered_sword.png"
   },
   {
     "name": "Terrifying Mask",
@@ -1607,15 +1274,6 @@
       "Requires ::s_value:: [FuelCell]"
     ],
     "image": "warm_magnets.png"
-  },
-  {
-    "name": "Weaponized Configuration",
-    "unit": [],
-    "faction": [],
-    "attributes": [
-      "::s_value:: [CarryCapacity]"
-    ],
-    "image": "weaponized_configuration.png"
   },
   {
     "name": "Whistling Ammo",

@@ -8,6 +8,11 @@ import { mainBasesLayout, mainBasesState } from "./main-base"
 export const FACTION_LABELS = ["harkonnen", "atreides", "ecaz", "smuggler", "vernius", "fremen", "corrino"];
 export type FactionLabel = "harkonnen" | "atreides" | "ecaz" | "smuggler" | "vernius" | "fremen" | "corrino";
 
+/** Number of units per faction */
+export const UNITS_PER_FACTION = 5
+/** Number of gear slots per unit */
+export const GEAR_SLOTS_PER_UNIT = 2
+
 /** Deep clone for serializable state (mainBaseState, buildingOrder). */
 export function deepClone<T>(x: T): T {
   return JSON.parse(JSON.stringify(x))
@@ -23,6 +28,9 @@ export interface BuildingCoords {
 /** Building order per faction */
 export type BuildingOrderState = Record<FactionLabel, BuildingCoords[]>
 
+/** Armory state: 5 units × 2 gear slots per faction */
+export type ArmoryState = Record<FactionLabel, (string | null)[][]>
+
 /** Initial building order (empty per faction) */
 const initialBuildingOrder: BuildingOrderState = {
   harkonnen: [],
@@ -34,8 +42,26 @@ const initialBuildingOrder: BuildingOrderState = {
   corrino: [],
 }
 
-const DEFAULT_UNIT_SLOT_COUNT = 3
-export const MAX_UNIT_SLOT_COUNT = 30
+/** Creates initial armory state for a faction (5 units × 2 slots, all null) */
+function createEmptyArmoryForFaction(): (string | null)[][] {
+  return Array.from({ length: UNITS_PER_FACTION }, () =>
+    Array.from({ length: GEAR_SLOTS_PER_UNIT }, () => null)
+  )
+}
+
+/** Initial armory state (empty for all factions) */
+const initialArmoryState: ArmoryState = {
+  harkonnen: createEmptyArmoryForFaction(),
+  atreides: createEmptyArmoryForFaction(),
+  ecaz: createEmptyArmoryForFaction(),
+  smuggler: createEmptyArmoryForFaction(),
+  vernius: createEmptyArmoryForFaction(),
+  fremen: createEmptyArmoryForFaction(),
+  corrino: createEmptyArmoryForFaction(),
+}
+
+const DEFAULT_UNIT_SLOT_COUNT = 4
+export const MAX_UNIT_SLOT_COUNT = 25
 
 /** Saved build (local list, id not in URL) */
 export interface SavedBuild {
@@ -45,6 +71,7 @@ export interface SavedBuild {
   selectedFaction: FactionLabel
   mainBaseState: Record<FactionLabel, MainBaseState>
   buildingOrder: BuildingOrderState
+  armoryState: ArmoryState
   unitSlotCount: number
 }
 
@@ -65,12 +92,14 @@ interface MainStore {
   selectedFaction: FactionLabel
   mainBaseState: Record<FactionLabel, MainBaseState>
   buildingOrder: BuildingOrderState
+  armoryState: ArmoryState
   unitSlotCount: number
   currentBuildName: string
   currentBuildId: CurrentBuildId
   savedBuilds: SavedBuild[]
   lastSavedSnapshot: BuildSnapshot
   setMainBaseCell: (rowIndex: number, groupIndex: number, cellIndex: number, buildingId: string | null) => void
+  setArmorySlot: (unitIndex: number, slotIndex: number, gearName: string | null) => void
   addUnitSlot: () => void
   loadSharedBuild: (payload: SharedBuildPayload) => void
   setCurrentBuildName: (name: string) => void
@@ -87,6 +116,7 @@ export function getBuildSnapshot(state: {
   selectedFaction: FactionLabel
   mainBaseState: Record<FactionLabel, MainBaseState>
   buildingOrder: BuildingOrderState
+  armoryState: ArmoryState
   unitSlotCount: number
   currentBuildName: string
 }): string {
@@ -94,6 +124,7 @@ export function getBuildSnapshot(state: {
     selectedFaction: state.selectedFaction,
     mainBaseState: state.mainBaseState,
     buildingOrder: state.buildingOrder,
+    armoryState: state.armoryState,
     unitSlotCount: state.unitSlotCount,
     currentBuildName: state.currentBuildName,
   })
@@ -173,6 +204,7 @@ export const useMainStore = create<MainStore>()(
       },
       mainBaseState: mainBasesState,
       buildingOrder: initialBuildingOrder,
+      armoryState: initialArmoryState,
       unitSlotCount: DEFAULT_UNIT_SLOT_COUNT,
       currentBuildName: INITIAL_BUILD_NAME,
       currentBuildId: null,
@@ -214,14 +246,32 @@ export const useMainStore = create<MainStore>()(
         })
         get().saveCurrentBuild()
       },
+      setArmorySlot: (unitIndex, slotIndex, gearName) => {
+        const { selectedFaction, armoryState } = get()
+        const factionArmory = armoryState[selectedFaction]
+        const newUnitSlots = [...factionArmory[unitIndex]]
+        newUnitSlots[slotIndex] = gearName
+        const newFactionArmory = factionArmory.map((slots, i) =>
+          i === unitIndex ? newUnitSlots : slots
+        )
+        set({
+          armoryState: {
+            ...armoryState,
+            [selectedFaction]: newFactionArmory,
+          },
+        })
+        get().saveCurrentBuild()
+      },
       loadSharedBuild: (payload) => {
-        const { mainBaseState, buildingOrder } = get()
+        const { mainBaseState, buildingOrder, armoryState } = get()
         const orderArray = Array.isArray(payload.order) ? payload.order : []
         const stateForFaction = Array.isArray(payload.state) ? payload.state : mainBasesState[payload.f]
+        const armoryForFaction = Array.isArray(payload.armory) ? payload.armory : createEmptyArmoryForFaction()
         set({
           selectedFaction: payload.f,
           mainBaseState: { ...mainBaseState, [payload.f]: stateForFaction },
           buildingOrder: { ...buildingOrder, [payload.f]: orderArray },
+          armoryState: { ...armoryState, [payload.f]: armoryForFaction },
           unitSlotCount: DEFAULT_UNIT_SLOT_COUNT,
           currentBuildId: null,
         })
@@ -238,6 +288,7 @@ export const useMainStore = create<MainStore>()(
           selectedFaction,
           mainBaseState,
           buildingOrder,
+          armoryState,
           unitSlotCount,
           savedBuilds,
           currentBuildName,
@@ -255,6 +306,7 @@ export const useMainStore = create<MainStore>()(
           selectedFaction,
           mainBaseState,
           buildingOrder,
+          armoryState,
           unitSlotCount,
           currentBuildName: finalName,
         })
@@ -266,6 +318,7 @@ export const useMainStore = create<MainStore>()(
             selectedFaction,
             mainBaseState: deepClone(mainBaseState),
             buildingOrder: deepClone(buildingOrder),
+            armoryState: deepClone(armoryState),
             unitSlotCount,
             createdAt: Date.now(),
           }
@@ -284,6 +337,7 @@ export const useMainStore = create<MainStore>()(
             selectedFaction,
             mainBaseState: deepClone(mainBaseState),
             buildingOrder: deepClone(buildingOrder),
+            armoryState: deepClone(armoryState),
             unitSlotCount,
           }
           set({
@@ -299,10 +353,12 @@ export const useMainStore = create<MainStore>()(
         const build = savedBuilds.find((b) => b.id === id)
         if (!build) return
         const unitSlotCount = typeof build.unitSlotCount === "number" ? build.unitSlotCount : DEFAULT_UNIT_SLOT_COUNT
+        const armoryState = build.armoryState || initialArmoryState
         const snapshot = getBuildSnapshot({
           selectedFaction: build.selectedFaction,
           mainBaseState: build.mainBaseState,
           buildingOrder: build.buildingOrder,
+          armoryState,
           unitSlotCount,
           currentBuildName: build.name,
         })
@@ -310,6 +366,7 @@ export const useMainStore = create<MainStore>()(
           selectedFaction: build.selectedFaction,
           mainBaseState: deepClone(build.mainBaseState),
           buildingOrder: deepClone(build.buildingOrder),
+          armoryState: deepClone(armoryState),
           unitSlotCount,
           currentBuildName: build.name,
           currentBuildId: id,
@@ -326,6 +383,7 @@ export const useMainStore = create<MainStore>()(
             selectedFaction: "atreides",
             mainBaseState: mainBasesState,
             buildingOrder: initialBuildingOrder,
+            armoryState: initialArmoryState,
             unitSlotCount: DEFAULT_UNIT_SLOT_COUNT,
             currentBuildName: getDefaultBuildName("atreides", newSaved),
             currentBuildId: null,
@@ -342,6 +400,7 @@ export const useMainStore = create<MainStore>()(
           selectedFaction: "atreides",
           mainBaseState: mainBasesState,
           buildingOrder: initialBuildingOrder,
+          armoryState: initialArmoryState,
           unitSlotCount: DEFAULT_UNIT_SLOT_COUNT,
           currentBuildName: getDefaultBuildName("atreides", savedBuilds),
           currentBuildId: null,
@@ -360,6 +419,7 @@ export const useMainStore = create<MainStore>()(
             selectedFaction: g.selectedFaction,
             mainBaseState: g.mainBaseState,
             buildingOrder: g.buildingOrder,
+            armoryState: g.armoryState,
             unitSlotCount: g.unitSlotCount,
             currentBuildName: trimmed,
           })
@@ -376,13 +436,22 @@ export const useMainStore = create<MainStore>()(
         if (typeof migrated.unitSlotCount !== "number") {
           migrated.unitSlotCount = DEFAULT_UNIT_SLOT_COUNT
         }
+        // Migrate armoryState if missing
+        if (!migrated.armoryState) {
+          migrated.armoryState = initialArmoryState
+        }
         const builds = migrated.savedBuilds
         if (Array.isArray(builds)) {
-          migrated.savedBuilds = builds.map((b: Record<string, unknown>) =>
-            typeof (b as { unitSlotCount?: number }).unitSlotCount === "number"
-              ? b
-              : { ...b, unitSlotCount: DEFAULT_UNIT_SLOT_COUNT }
-          )
+          migrated.savedBuilds = builds.map((b: Record<string, unknown>) => {
+            const updated = { ...b }
+            if (typeof (b as { unitSlotCount?: number }).unitSlotCount !== "number") {
+              updated.unitSlotCount = DEFAULT_UNIT_SLOT_COUNT
+            }
+            if (!(b as { armoryState?: unknown }).armoryState) {
+              updated.armoryState = initialArmoryState
+            }
+            return updated
+          })
         }
         return migrated as unknown as MainStore
       },
@@ -447,12 +516,14 @@ export function useIsBuildUpToDate(): boolean {
   const selectedFaction = useMainStore((s) => s.selectedFaction)
   const mainBaseState = useMainStore((s) => s.mainBaseState)
   const buildingOrder = useMainStore((s) => s.buildingOrder)
+  const armoryState = useMainStore((s) => s.armoryState)
   const unitSlotCount = useMainStore((s) => s.unitSlotCount)
   const currentBuildName = useMainStore((s) => s.currentBuildName)
   const currentSnapshot = getBuildSnapshot({
     selectedFaction,
     mainBaseState,
     buildingOrder,
+    armoryState,
     unitSlotCount,
     currentBuildName,
   })
@@ -464,5 +535,12 @@ export function useIsBuildEmpty(): boolean {
   const selectedFaction = useMainStore((s) => s.selectedFaction)
   const mainBaseState = useMainStore((s) => s.mainBaseState)
   return isFactionBaseEmpty(mainBaseState, selectedFaction)
+}
+
+/** Returns the armory state for the current faction (5 units × 2 slots). */
+export function useCurrentArmoryState(): (string | null)[][] {
+  const selectedFaction = useMainStore((s) => s.selectedFaction)
+  const armoryState = useMainStore((s) => s.armoryState)
+  return armoryState[selectedFaction]
 }
 

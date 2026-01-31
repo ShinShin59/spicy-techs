@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, memo } from "react"
-import { useMainStore, FACTION_LABELS, type SavedBuild, type FactionLabel } from "@/store"
+import { useMainStore, type SavedBuild, type FactionLabel } from "@/store"
 import { getFactionIconPath } from "@/utils/assetPaths"
 
 function getFactionFocusRingClass(faction: FactionLabel): string {
@@ -13,13 +13,6 @@ function getFactionFocusRingClass(faction: FactionLabel): string {
     corrino: "focus:ring-purple-500",
   }
   return ring[faction] ?? "focus:ring-amber-500"
-}
-
-function preloadFactionIcons(): void {
-  ; (FACTION_LABELS as readonly FactionLabel[]).forEach((faction) => {
-    const img = new Image()
-    img.src = getFactionIconPath(faction)
-  })
 }
 
 const PencilIcon = () => (
@@ -168,10 +161,6 @@ const BuildsSidebar = ({ onClose }: BuildsSidebarProps) => {
   const loadBuild = useMainStore((s) => s.loadBuild)
   const deleteBuild = useMainStore((s) => s.deleteBuild)
   const renameBuild = useMainStore((s) => s.renameBuild)
-
-  useEffect(() => {
-    preloadFactionIcons()
-  }, [])
 
   const sortedSaved = [...savedBuilds].sort((a, b) => b.createdAt - a.createdAt)
 

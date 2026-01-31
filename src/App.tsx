@@ -4,8 +4,11 @@ import Armory from "./components/Armory"
 import Units from "./components/Units"
 import Topbar from "./components/Topbar"
 import BuildsSidebar from "./components/BuildsSidebar"
+import BuildLayout from "./components/BuildLayout"
 import { useMainStore, useUIStore } from "./store"
 import { decodeBuildPayload } from "./utils/mainBaseShare"
+// Import assetPaths to trigger preloading at module load time (before render)
+import "./utils/assetPaths"
 
 function App() {
   const sidebarOpen = useUIStore((s) => s.sidebarOpen)
@@ -23,14 +26,14 @@ function App() {
   }, [])
 
   return (
-    <div className="w-screen h-screen bg-black text-white flex flex-col overflow-hidden">
+    <div className="w-screen h-screen bg-black text-white flex flex-col overflow-hidden select-none">
       <Topbar onCreate={() => resetToDefault()} />
-      <div className="flex-1 relative flex flex-col items-center justify-center gap-6 p-4 overflow-auto">
-        <div id="BUILD" className="relative flex flex-wrap  justify-center gap-6">
-          {mainBaseOpen && <MainBase />}
-          {armoryOpen && <Armory />}
-          {unitsOpen && <Units />}
-        </div>
+      <div className="flex-1 flex items-center justify-center p-4 overflow-auto">
+        <BuildLayout
+          mainBase={mainBaseOpen ? <MainBase /> : undefined}
+          units={unitsOpen ? <Units /> : undefined}
+          armory={armoryOpen ? <Armory /> : undefined}
+        />
       </div>
       {sidebarOpen && <BuildsSidebar onClose={() => setSidebarOpen(false)} />}
     </div>

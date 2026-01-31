@@ -6,6 +6,7 @@ export function useShareButton() {
   const selectedFaction = useMainStore((s) => s.selectedFaction)
   const mainBaseState = useMainStore((s) => s.mainBaseState)
   const buildingOrder = useMainStore((s) => s.buildingOrder)
+  const armoryState = useMainStore((s) => s.armoryState)
   const [copied, setCopied] = useState(false)
   const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -20,6 +21,7 @@ export function useShareButton() {
       f: selectedFaction,
       state: mainBaseState[selectedFaction],
       order: buildingOrder[selectedFaction] ?? [],
+      armory: armoryState[selectedFaction],
     }
     const encoded = encodeBuildPayload(payload)
     const url = getShareUrl(encoded)
