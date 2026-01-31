@@ -50,7 +50,7 @@ const Armory = () => {
     // Don't open selector if clicking on the order badge
     const target = e.target as HTMLElement
     if (target.closest("[data-order-badge]")) return
-    
+
     const rect = e.currentTarget.getBoundingClientRect()
     setAnchorPosition({ x: rect.left, y: rect.top })
     setSelectedSlot({ unitIndex, slotIndex })

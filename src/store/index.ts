@@ -530,12 +530,13 @@ export const useMainStore = create<MainStore>()(
         }
         factionUnitSlots[slotIndex] = unitId
 
-        // Update units order
+        // Update units order (exclude hero slot - order only applies to units)
         const factionOrder = unitsOrder[selectedFaction]
         const filteredOrder = factionOrder.filter((i) => i !== slotIndex)
-        const newFactionOrder = unitId !== null
-          ? [...filteredOrder, slotIndex]
-          : filteredOrder
+        const newFactionOrder =
+          unitId !== null && slotIndex !== HERO_SLOT_INDEX
+            ? [...filteredOrder, slotIndex]
+            : filteredOrder
 
         set({
           unitSlots: {
@@ -976,6 +977,26 @@ export const useMainStore = create<MainStore>()(
         // Migrate unitsOrder if missing
         if (!migrated.unitsOrder) {
           migrated.unitsOrder = initialUnitsOrder
+        } else {
+          // Filter out hero slot from order (order only applies to units)
+          const order = migrated.unitsOrder as UnitsOrderState
+          const factionLabels: FactionLabel[] = [
+            "harkonnen",
+            "atreides",
+            "ecaz",
+            "smuggler",
+            "vernius",
+            "fremen",
+            "corrino",
+          ]
+          const newOrder = { ...order }
+          for (const f of factionLabels) {
+            const arr = newOrder[f]
+            if (Array.isArray(arr)) {
+              newOrder[f] = arr.filter((i) => i !== HERO_SLOT_INDEX)
+            }
+          }
+          migrated.unitsOrder = newOrder
         }
         // Migrate councillorSlots if missing
         if (!migrated.councillorSlots) {
@@ -995,6 +1016,15 @@ export const useMainStore = create<MainStore>()(
         }
         const builds = migrated.savedBuilds
         if (Array.isArray(builds)) {
+          const factionLabels: FactionLabel[] = [
+            "harkonnen",
+            "atreides",
+            "ecaz",
+            "smuggler",
+            "vernius",
+            "fremen",
+            "corrino",
+          ]
           migrated.savedBuilds = builds.map((b: Record<string, unknown>) => {
             const updated = { ...b }
             if (typeof (b as { unitSlotCount?: number }).unitSlotCount !== "number") {
@@ -1013,15 +1043,6 @@ export const useMainStore = create<MainStore>()(
               updated.unitSlots = initialUnitSlotsState
             } else {
               const slots = (b as { unitSlots: UnitSlotsState }).unitSlots
-              const factionLabels: FactionLabel[] = [
-                "harkonnen",
-                "atreides",
-                "ecaz",
-                "smuggler",
-                "vernius",
-                "fremen",
-                "corrino",
-              ]
               let needsHeroMigration = false
               for (const f of factionLabels) {
                 const arr = slots[f]
@@ -1060,6 +1081,16 @@ export const useMainStore = create<MainStore>()(
             }
             if (!(b as { unitsOrder?: unknown }).unitsOrder) {
               updated.unitsOrder = initialUnitsOrder
+            } else {
+              const order = (b as { unitsOrder: UnitsOrderState }).unitsOrder
+              const newOrder = { ...order }
+              for (const f of factionLabels) {
+                const arr = newOrder[f]
+                if (Array.isArray(arr)) {
+                  newOrder[f] = arr.filter((i: number) => i !== HERO_SLOT_INDEX)
+                }
+              }
+              updated.unitsOrder = newOrder
             }
             if (!(b as { panelVisibility?: unknown }).panelVisibility) {
               updated.panelVisibility = initialPanelVisibility
@@ -1199,11 +1230,12 @@ export function useCurrentUnitSlots(): (string | null)[] {
   return unitSlots[selectedFaction]
 }
 
-/** Returns the units order for the current faction. */
+/** Returns the units order for the current faction (excludes hero slot). */
 export function useCurrentUnitsOrder(): number[] {
   const selectedFaction = useMainStore((s) => s.selectedFaction)
   const unitsOrder = useMainStore((s) => s.unitsOrder)
-  return unitsOrder[selectedFaction] ?? []
+  const order = unitsOrder[selectedFaction] ?? []
+  return order.filter((i) => i !== HERO_SLOT_INDEX)
 }
 
 /** Returns the councillor slots for the current faction ([oldest, newest], max 2). */

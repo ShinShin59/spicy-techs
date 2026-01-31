@@ -111,7 +111,7 @@ const CouncillorsSelector = ({
                   `}
                 >
                   <img
-                    src={getCouncillorIconPath(selectedFaction, councillor.image)}
+                    src={getCouncillorIconPath(councillor.image)}
                     alt={councillor.name}
                     loading="eager"
                     decoding="sync"

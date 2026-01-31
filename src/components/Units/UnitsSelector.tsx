@@ -83,17 +83,6 @@ const UnitsSelector = ({
 
         {/* Units/Heroes grid */}
         <div className="flex p-3 gap-1 flex-wrap">
-          {heroOnly && (
-            <div className="w-16 h-16 shrink-0">
-              <button
-                onClick={() => onSelect(null)}
-                className="w-full h-full flex items-center justify-center hover:brightness-125 cursor-pointer border border-dashed border-zinc-500 text-zinc-500 text-xs"
-                title="Clear hero"
-              >
-                Empty
-              </button>
-            </div>
-          )}
           {units.map((unit) => (
             <div
               key={unit.id}

@@ -50,7 +50,7 @@ const Councillors = () => {
         </h2>
         <div
           id="councillors-grid"
-          className="relative bg-zinc-900 border border-zinc-700 w-[280px] gap-2 p-4 box-border overflow-y-auto min-h-0"
+          className="relative bg-zinc-900 border border-zinc-700 w-[168px] gap-2 p-4 box-border overflow-y-auto min-h-0"
         >
           <div className="flex gap-2">
             {[0, 1].map((index) => {
@@ -95,10 +95,7 @@ const Councillors = () => {
                 >
                   {hasCouncillor && councillorData && (
                     <img
-                      src={getCouncillorIconPath(
-                        selectedFaction,
-                        councillorData.image
-                      )}
+                      src={getCouncillorIconPath(councillorData.image)}
                       alt={councillorData.name}
                       loading="eager"
                       decoding="sync"

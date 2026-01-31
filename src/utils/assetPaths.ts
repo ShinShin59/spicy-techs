@@ -3,6 +3,7 @@ import armoryData from "@/components/Armory/armory.json"
 import mainBuildingsData from "@/components/MainBase/MainBaseBuildingsSelector/main-buildings.json"
 import unitsData from "@/components/Units/units.json"
 import heroesData from "@/components/Units/hero.json"
+import councillorsData from "@/components/Councillors/councillors.json"
 
 const FACTION_ICON_PATH = "/images/faction_buttons_square"
 const MAINBASE_ICONS_PATH = "/images/mainbase_icons"
@@ -27,8 +28,8 @@ export function getUnitIconPath(faction: FactionLabel, unitName: string): string
   return `${UNIT_ICONS_PATH}/${faction}/${fileName}.png`
 }
 
-export function getCouncillorIconPath(faction: FactionLabel, imageFileName: string): string {
-  return `${COUNCILLOR_ICONS_PATH}/${faction}/${imageFileName}`
+export function getCouncillorIconPath(imageFileName: string): string {
+  return `${COUNCILLOR_ICONS_PATH}/${imageFileName}`
 }
 
 /** Set of URLs that have been preloaded */
@@ -99,6 +100,14 @@ function initPreload(): void {
       heroes.forEach((hero) => {
         preloadImage(`${UNIT_ICONS_PATH}/${faction}/${hero.imageName}.png`)
       })
+    }
+  })
+
+  // Preload councillor icons
+  const councillorsByFaction = councillorsData as Record<string, { image: string }[]>
+  Object.values(councillorsByFaction).forEach((councillors) => {
+    if (Array.isArray(councillors)) {
+      councillors.forEach((c) => preloadImage(getCouncillorIconPath(c.image)))
     }
   })
 }

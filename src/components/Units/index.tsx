@@ -44,7 +44,7 @@ const Units = () => {
     // Don't open selector if clicking on the order badge
     const target = e.target as HTMLElement
     if (target.closest("[data-order-badge]")) return
-    
+
     const rect = e.currentTarget.getBoundingClientRect()
     setAnchorPosition({ x: rect.left, y: rect.top })
     setSelectedSlotIndex(slotIndex)
@@ -112,18 +112,19 @@ const Units = () => {
               const orderNumber = getUnitsOrderNumber(unitsOrder, index)
 
               const isHeroSlotEmpty = isHeroSlot && !hasUnit
-              const cellStyle = isHeroSlotEmpty
-                ? "bg-zinc-800/60 border-zinc-600/60 hover:bg-zinc-700/60"
+              const cellStyle = isHeroSlot
+                ? "bg-[url('/images/background_hero.png')] bg-cover bg-center"
                 : hasUnit
                   ? "bg-zinc-700"
                   : "bg-zinc-600 hover:bg-zinc-500"
+              const heroSlotMuted = isHeroSlotEmpty ? "opacity-70" : ""
 
               return (
                 <div
                   key={`unit-${index}`}
                   role="button"
                   tabIndex={0}
-                  className={`${cellClass} relative cursor-pointer ${cellStyle}`}
+                  className={`${cellClass} relative cursor-pointer ${cellStyle} ${heroSlotMuted}`}
                   id={`units-slot-${index}`}
                   title={isHeroSlotEmpty ? "Hero slot (optional)" : undefined}
                   onClick={(e) => handleSlotClick(e, index)}
@@ -131,17 +132,17 @@ const Units = () => {
                   onMouseEnter={
                     hasUnit && displayData
                       ? (e) => {
-                          const rect = e.currentTarget.getBoundingClientRect()
-                          setHoverTooltip({
-                            unit: displayData,
-                            anchorRect: {
-                              left: rect.left,
-                              top: rect.top,
-                              width: rect.width,
-                              height: rect.height,
-                            },
-                          })
-                        }
+                        const rect = e.currentTarget.getBoundingClientRect()
+                        setHoverTooltip({
+                          unit: displayData,
+                          anchorRect: {
+                            left: rect.left,
+                            top: rect.top,
+                            width: rect.width,
+                            height: rect.height,
+                          },
+                        })
+                      }
                       : undefined
                   }
                   onMouseLeave={hasUnit ? () => setHoverTooltip(null) : undefined}
@@ -164,7 +165,7 @@ const Units = () => {
                       className="w-16 h-16 object-contain"
                     />
                   )}
-                  {orderNumber !== null && (
+                  {orderNumber !== null && !isHeroSlot && (
                     <OrderBadge
                       orderNumber={orderNumber}
                       onIncrement={() => updateUnitsOrder(incrementOrder(unitsOrder, index, unitIsEqual))}
