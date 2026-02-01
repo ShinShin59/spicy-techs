@@ -31,7 +31,7 @@ const FactionSelector = () => {
   }
 
   return (
-    <div ref={containerRef} className="relative">
+    <div ref={containerRef} className="relative z-10">
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}

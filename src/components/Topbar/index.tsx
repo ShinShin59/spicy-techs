@@ -7,6 +7,7 @@ interface TopbarProps {
 }
 
 const Topbar = ({ onNew, onFork }: TopbarProps) => {
+  const selectedFaction = useMainStore((s) => s.selectedFaction)
   const sidebarOpen = useUIStore((s) => s.sidebarOpen)
   const toggleSidebar = useUIStore((s) => s.toggleSidebar)
   const panelVisibility = useMainStore((s) => s.panelVisibility)
@@ -20,14 +21,25 @@ const Topbar = ({ onNew, onFork }: TopbarProps) => {
     `px-3 py-1.5 text-sm font-medium border transition-colors cursor-pointer ${open ? "bg-accent border-accent text-white hover:bg-accent-hover" : "bg-zinc-800 border-zinc-600 text-zinc-200 hover:bg-zinc-700"
     }`
 
+  const factionBgVar = `var(--color-faction-${selectedFaction})` as const
+  const sideBgImage = "url(/images/hud/sides_left.png), url(/images/hud/sides_right.png)"
+
   return (
-    <header className="w-full h-10 py-6 shrink-0 flex items-center justify-end gap-2 px-4 bg-slot border-b border-zinc-700 relative">
-      <FactionSelector />
+    <header
+      className="w-full h-10 py-6 shrink-0 flex items-center justify-center gap-2 px-4 relative border-b-2 border-t-2 border-[#a67c00] shadow-[0_1px_0_#000,0_-1px_0_#000] after:content-[''] after:absolute after:inset-0 after:pointer-events-none after:bg-linear-to-r after:from-black/40 after:via-transparent after:to-black/40"
+      style={{
+        backgroundColor: factionBgVar,
+        backgroundImage: sideBgImage,
+        backgroundPosition: "left center, right center",
+        backgroundRepeat: "no-repeat, no-repeat",
+        backgroundSize: "auto 100%, auto 100%",
+      }}
+    >
       <button
         type="button"
         onClick={onNew}
         aria-label="Create new build"
-        className="px-3 py-1.5 text-sm font-medium border border-zinc-600 cursor-pointer bg-expansion text-white hover:bg-expansion/80 transition-colors"
+        className="px-3 py-1.5 text-sm font-medium border border-zinc-600 cursor-pointer bg-expansion text-white hover:bg-expansion/80 transition-colors relative z-10"
       >
         New
       </button>
@@ -35,16 +47,17 @@ const Topbar = ({ onNew, onFork }: TopbarProps) => {
         type="button"
         onClick={onFork}
         aria-label="Fork current build"
-        className="px-3 py-1.5 text-sm font-medium border border-accent/70 cursor-pointer bg-accent/50 text-zinc-200 hover:bg-accent/70 transition-colors"
+        className="px-3 py-1.5 text-sm font-medium border border-accent/70 cursor-pointer bg-accent/50 text-zinc-200 hover:bg-accent/70 transition-colors relative z-10"
       >
         Fork
       </button>
+      <FactionSelector />
       <button
         type="button"
         onClick={toggleMainBase}
         aria-pressed={panelVisibility.mainBaseOpen}
         aria-label="Toggle Main Base"
-        className={panelBtnClass(panelVisibility.mainBaseOpen)}
+        className={`${panelBtnClass(panelVisibility.mainBaseOpen)} relative z-10`}
       >
         Main Base
       </button>
@@ -53,7 +66,7 @@ const Topbar = ({ onNew, onFork }: TopbarProps) => {
         onClick={toggleArmory}
         aria-pressed={panelVisibility.armoryOpen}
         aria-label="Toggle Armory"
-        className={panelBtnClass(panelVisibility.armoryOpen)}
+        className={`${panelBtnClass(panelVisibility.armoryOpen)} relative z-10`}
       >
         Armory
       </button>
@@ -62,7 +75,7 @@ const Topbar = ({ onNew, onFork }: TopbarProps) => {
         onClick={toggleUnits}
         aria-pressed={panelVisibility.unitsOpen}
         aria-label="Toggle Units"
-        className={panelBtnClass(panelVisibility.unitsOpen)}
+        className={`${panelBtnClass(panelVisibility.unitsOpen)} relative z-10`}
       >
         Units
       </button>
@@ -71,7 +84,7 @@ const Topbar = ({ onNew, onFork }: TopbarProps) => {
         onClick={toggleCouncillors}
         aria-pressed={panelVisibility.councillorsOpen}
         aria-label="Toggle Councillors"
-        className={panelBtnClass(panelVisibility.councillorsOpen)}
+        className={`${panelBtnClass(panelVisibility.councillorsOpen)} relative z-10`}
       >
         Councillors
       </button>
@@ -80,7 +93,7 @@ const Topbar = ({ onNew, onFork }: TopbarProps) => {
         onClick={toggleSidebar}
         aria-pressed={sidebarOpen}
         aria-label="Open build list"
-        className={panelBtnClass(sidebarOpen)}
+        className={`${panelBtnClass(sidebarOpen)} relative z-10`}
       >
         Builds
       </button>
@@ -89,10 +102,17 @@ const Topbar = ({ onNew, onFork }: TopbarProps) => {
         onClick={toggleMetadata}
         aria-pressed={panelVisibility.metadataOpen}
         aria-label="Toggle Metadata"
-        className={panelBtnClass(panelVisibility.metadataOpen)}
+        className={`${panelBtnClass(panelVisibility.metadataOpen)} relative z-10`}
       >
         Meta
       </button>
+      {/* Logo */}
+      <img
+        src="/images/hud/spicy_techs.png"
+        alt=""
+        aria-hidden
+        className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-[100px] z-20 pointer-events-none"
+      />
     </header>
   )
 }
