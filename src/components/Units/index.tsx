@@ -18,7 +18,7 @@ interface AnchorPosition {
 }
 
 const cellClass =
-  "w-[64px] h-[64px] flex items-center justify-center overflow-hidden border border-zinc-700 text-white text-xs font-medium"
+  "w-[64px] h-[64px] flex items-center justify-center overflow-hidden text-white text-xs font-medium"
 
 const Units = () => {
   const selectedFaction = useMainStore((s) => s.selectedFaction)
