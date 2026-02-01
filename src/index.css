@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+html, body {
+  background: #080809;
+}
+
 /* C&C Red Alert – WOFF2 from public. Path relative to project; no format() per Vite font-loading fixes. */
 @font-face {
   font-family: "C&C Red Alert Inet";
@@ -38,6 +42,13 @@
   --color-faction-corrino: #9C8384;
   --color-faction-ecaz: #C96092;
   --color-faction-vernius: #3C166D;
+
+  /* Subtle gradient background animation */
+  --animate-gradient-shift: gradient-shift 25s ease-in-out infinite;
+  @keyframes gradient-shift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
 }
 
 /* Prevent image dragging */
