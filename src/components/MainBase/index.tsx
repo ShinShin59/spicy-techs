@@ -15,16 +15,18 @@ function getBuildingByName(name: string | null): MainBuilding | undefined {
   return mainBuildings.find((b) => b.name === name)
 }
 
-function getCategoryBgClass(category: MainBuilding['category']): string {
+function getCategorySlotBgClass(category: MainBuilding['category']): string {
   switch (category) {
     case 'Economy':
-      return 'bg-economy'
+      return "bg-[url('/images/hud/slot_economic.png')]"
     case 'Military':
-      return 'bg-military'
+      return "bg-[url('/images/hud/slot_military.png')]"
     case 'Statecraft':
-      return 'bg-statecraft'
+      return "bg-[url('/images/hud/slot_statecraft.png')]"
   }
 }
+
+type SlotType = 'filled' | 'empty_add' | 'empty_disabled'
 
 interface SelectedCell {
   rowIndex: number
@@ -110,21 +112,37 @@ const MainBase = () => {
                       const hasBuilding = buildingName !== null && buildingData !== undefined
                       const orderNumber = getBuildingOrderNumber(buildingOrder, rowIndex, groupIndex, cellIndex)
 
-                      const cellBgClass = hasBuilding && buildingData
-                        ? getCategoryBgClass(buildingData.category)
-                        : "bg-[url('/images/hud/slot.png')] bg-cover bg-center hover:brightness-110"
+                      const groupState = mainBaseState[rowIndex]?.[groupIndex] ?? []
+                      const emptyCount = groupState.filter((v) => v === null).length
+                      const firstEmptyIndex = groupState.findIndex((v) => v === null)
+
+                      const slotType: SlotType = hasBuilding && buildingData
+                        ? 'filled'
+                        : emptyCount >= 2 && cellIndex !== firstEmptyIndex
+                          ? 'empty_disabled'
+                          : 'empty_add'
+
+                      const cellBgClass =
+                        slotType === 'filled' && buildingData
+                          ? `${getCategorySlotBgClass(buildingData.category)} bg-cover bg-center`
+                          : slotType === 'empty_add'
+                            ? "bg-[url('/images/hud/slot_add.png')] bg-cover bg-center hover:bg-[url('/images/hud/slot_add_hover.png')]"
+                            : "bg-[url('/images/hud/slot_disabled.png')] bg-cover bg-center"
+
+                      const isDisabled = slotType === 'empty_disabled'
 
                       return (
                         <div
                           key={cellIndex}
                           role="button"
-                          tabIndex={0}
-                          className={`relative w-[64px] h-[64px] cursor-pointer flex items-center justify-center overflow-hidden border border-zinc-700 ${cellBgClass}`}
+                          tabIndex={isDisabled ? -1 : 0}
+                          aria-disabled={isDisabled ? true : undefined}
+                          className={`relative w-[64px] h-[64px] flex items-center justify-center overflow-hidden border border-zinc-700 ${cellBgClass} ${isDisabled ? 'pointer-events-none' : 'cursor-pointer'}`}
                           id={`main-base-building-${cellIndex}`}
-                          onClick={(e) => handleCellClick(e, rowIndex, groupIndex, cellIndex)}
-                          onContextMenu={(e) => handleCellRightClick(e, rowIndex, groupIndex, cellIndex)}
+                          onClick={isDisabled ? undefined : (e) => handleCellClick(e, rowIndex, groupIndex, cellIndex)}
+                          onContextMenu={isDisabled ? undefined : (e) => handleCellRightClick(e, rowIndex, groupIndex, cellIndex)}
                           onMouseEnter={
-                            hasBuilding && buildingData
+                            slotType === 'filled' && buildingData
                               ? (e) => {
                                 const rect = e.currentTarget.getBoundingClientRect()
                                 setHoverTooltip({
@@ -140,7 +158,7 @@ const MainBase = () => {
                               : undefined
                           }
                           onMouseLeave={
-                            hasBuilding ? () => setHoverTooltip(null) : undefined
+                            slotType === 'filled' ? () => setHoverTooltip(null) : undefined
                           }
                         >
                           {hasBuilding && buildingData && (
