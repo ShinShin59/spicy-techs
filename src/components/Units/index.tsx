@@ -10,6 +10,7 @@ import { getUnitById, type UnitData } from "./units-utils"
 import { getHeroById, getHeroIconPath, isHeroId } from "./heroes-utils"
 import UnitsSelector from "./UnitsSelector"
 import UnitTooltip from "./UnitTooltip"
+import PanelCorners from "@/components/PanelCorners"
 
 interface AnchorPosition {
   x: number
@@ -102,6 +103,7 @@ const Units = () => {
           id="units-grid"
           className="relative bg-zinc-900 border border-zinc-700 w-[432px] gap-4 p-4  box-border overflow-y-auto min-h-0"
         >
+          <PanelCorners />
           <div className="grid grid-cols-5 gap-4">
             {Array.from({ length: unitSlotCount }).map((_, index) => {
               const unitId = unitSlots[index] ?? null

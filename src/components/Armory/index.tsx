@@ -3,6 +3,7 @@ import { useMainStore, useCurrentArmoryState, UNITS_PER_FACTION, GEAR_SLOTS_PER_
 import { getGearIconPath } from "@/utils/assetPaths"
 import ArmoryGearSelector from "./ArmoryGearSelector"
 import GearAttributesTooltip from "./GearAttributesTooltip"
+import PanelCorners from "@/components/PanelCorners"
 import {
   getUnitsForFaction,
   getGearByName,
@@ -109,6 +110,7 @@ const Armory = () => {
           id="armory-grid"
           className="relative bg-zinc-900 border border-zinc-700 flex items-center justify-center p-4 box-border w-full"
         >
+          <PanelCorners />
           {units.slice(0, UNITS_PER_FACTION).map((unit, unitIndex) => (
             <div key={unit.id} className="flex items-center">
               {/* Gear slots for this unit */}

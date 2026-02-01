@@ -4,6 +4,7 @@ import { getCouncillorIconPath } from "@/utils/assetPaths"
 import { getCouncillorById, type CouncillorData } from "./councillors-utils"
 import CouncillorsSelector from "./CouncillorsSelector"
 import CouncillorTooltip from "./CouncillorTooltip"
+import PanelCorners from "@/components/PanelCorners"
 
 interface AnchorPosition {
   x: number
@@ -52,6 +53,7 @@ const Councillors = () => {
           id="councillors-grid"
           className="relative bg-zinc-900 border border-zinc-700 w-[168px] gap-2 p-4 box-border overflow-y-auto min-h-0"
         >
+          <PanelCorners />
           <div className="flex gap-2">
             {[0, 1].map((index) => {
               const councillorId = councillorSlots[index]

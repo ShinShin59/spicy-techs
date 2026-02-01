@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react"
 import { useMainStore } from "@/store"
+import PanelCorners from "@/components/PanelCorners"
 
 const PersonIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-zinc-400">
@@ -116,9 +117,10 @@ export default function Metadata() {
 
   return (
     <aside
-      className="w-[280px] max-w-[90vw] flex flex-col border border-zinc-700 bg-zinc-900 shadow-xl overflow-hidden"
+      className="relative w-[280px] max-w-[90vw] flex flex-col border border-zinc-700 bg-zinc-900 shadow-xl overflow-hidden"
       aria-label="Build metadata"
     >
+      <PanelCorners />
       <div className="flex items-center justify-between p-3 border-b border-zinc-700 shrink-0">
         <h2 className="text-sm font-semibold text-zinc-200">Metadata</h2>
       </div>

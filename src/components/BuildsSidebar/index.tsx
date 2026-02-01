@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, memo } from "react"
 import { useMainStore, type SavedBuild, type FactionLabel } from "@/store"
 import { getFactionIconPath } from "@/utils/assetPaths"
+import PanelCorners from "@/components/PanelCorners"
 
 function getFactionRingClass(faction: FactionLabel): string {
   const ring: Record<FactionLabel, string> = {
@@ -207,9 +208,10 @@ const BuildsSidebar = ({ onClose }: BuildsSidebarProps) => {
 
   return (
     <aside
-      className="w-[280px] max-w-[90vw] flex flex-col border border-zinc-700 bg-zinc-900 shadow-xl overflow-hidden"
+      className="relative w-[280px] max-w-[90vw] flex flex-col border border-zinc-700 bg-zinc-900 shadow-xl overflow-hidden"
       aria-label="Build list"
     >
+      <PanelCorners />
       <div className="flex items-center justify-between p-3 border-b border-zinc-700 shrink-0">
         <h2 className="text-sm font-semibold text-zinc-200">Builds</h2>
         <button
