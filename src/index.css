@@ -64,6 +64,29 @@ html, body {
 
 }
 
+/* Logo title: halo traveling inside the letters */
+@keyframes logo-halo {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+
+.logo-title-halo {
+  background: linear-gradient(
+    90deg,
+    rgba(120, 110, 95, 0.95) 0%,
+    rgba(120, 110, 95, 0.95) 28%,
+    rgba(220, 208, 180, 1) 50%,
+    rgba(120, 110, 95, 0.95) 72%,
+    rgba(120, 110, 95, 0.95) 100%
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  animation: logo-halo 5s ease-in-out infinite;
+}
+
 /* Prevent image dragging */
 img {
   -webkit-user-drag: none;
