@@ -1,11 +1,7 @@
 import { useState } from "react"
-import {
-  useMainStore,
-  useCurrentUnitSlots,
-  MAX_UNIT_SLOT_COUNT,
-  HERO_SLOT_INDEX,
-} from "@/store"
+import { useMainStore, useCurrentUnitSlots, HERO_SLOT_INDEX, MAX_UNIT_SLOT_COUNT, MAX_UNIT_CP } from "@/store"
 import { getUnitIconPath } from "@/utils/assetPaths"
+import { playRandomSound, BUTTON_SPENDRESOURCES_SOUNDS } from "@/utils/sound"
 import { getUnitById, type UnitData } from "./units-utils"
 import { getHeroById, getHeroIconPath, isHeroId } from "./heroes-utils"
 import UnitsSelector from "./UnitsSelector"
@@ -36,31 +32,46 @@ const Units = () => {
   } | null>(null)
 
   const handleSlotClick = (e: React.MouseEvent, slotIndex: number) => {
+    // Add slot (0) and hero slot (1) can open the selector; other slots cannot
+    if (slotIndex !== 0 && slotIndex !== HERO_SLOT_INDEX) return
     const rect = e.currentTarget.getBoundingClientRect()
     setAnchorPosition({ x: rect.left, y: rect.top })
     setSelectedSlotIndex(slotIndex)
   }
 
   const handleSelectUnit = (unitId: string | null) => {
-    if (selectedSlotIndex !== null) {
-      setUnitSlot(selectedSlotIndex, unitId)
+    if (selectedSlotIndex === null) return
+    if (selectedSlotIndex === HERO_SLOT_INDEX) {
+      // Hero slot: set hero and close selector
+      setUnitSlot(HERO_SLOT_INDEX, unitId)
       setSelectedSlotIndex(null)
       setAnchorPosition(null)
-
-      // Auto-add a new slot if all unit slots (excluding hero) are now filled
-      if (unitId !== null && unitSlotCount < MAX_UNIT_SLOT_COUNT) {
-        let emptyCount = 0
-        for (let i = 0; i < unitSlotCount; i++) {
-          if (i === HERO_SLOT_INDEX) continue
-          const slotValue = i === selectedSlotIndex ? unitId : unitSlots[i]
-          if (slotValue === null || slotValue === undefined) {
-            emptyCount++
+      return
+    }
+    if (selectedSlotIndex === 0) {
+      // Add slot: assign to first empty unit slot (2..N), or add a new slot if all full (respect 65 CP cap)
+      if (unitId !== null) {
+        const unitData = getUnitById(selectedFaction, unitId)
+        const unitCost = unitData?.cpCost ?? 0
+        if (totalCP + unitCost > MAX_UNIT_CP) return
+        let placed = false
+        for (let k = 2; k < unitSlotCount; k++) {
+          if (unitSlots[k] == null) {
+            setUnitSlot(k, unitId)
+            placed = true
+            playRandomSound(BUTTON_SPENDRESOURCES_SOUNDS)
+            break
           }
         }
-        if (emptyCount === 0) {
-          addUnitSlot()
+        if (!placed && unitSlotCount < MAX_UNIT_SLOT_COUNT) {
+          const newIndex = addUnitSlot()
+          if (newIndex !== undefined) {
+            setUnitSlot(newIndex, unitId)
+            playRandomSound(BUTTON_SPENDRESOURCES_SOUNDS)
+          }
         }
       }
+      // Keep selector open; user closes it by clicking outside
     }
   }
 
@@ -106,6 +117,7 @@ const Units = () => {
           <PanelCorners />
           <div className="grid grid-cols-5 gap-4">
             {Array.from({ length: unitSlotCount }).map((_, index) => {
+              const isAddSlot = index === 0
               const unitId = unitSlots[index] ?? null
               const isHeroSlot = index === HERO_SLOT_INDEX
               const heroData = unitId && isHeroId(unitId) ? getHeroById(selectedFaction, unitId) : null
@@ -114,21 +126,24 @@ const Units = () => {
               const hasUnit = unitId !== null && unitId !== undefined && displayData !== null
 
               const isHeroSlotEmpty = isHeroSlot && !hasUnit
-              const cellStyle = isHeroSlot
-                ? "bg-[url('/images/hud/background_hero.png')] bg-cover bg-center"
-                : hasUnit
-                  ? "bg-[url('/images/hud/slot.png')] bg-cover bg-center"
-                  : "bg-[url('/images/hud/slot.png')] bg-cover bg-center hover:brightness-110"
+              const cellStyle = isAddSlot
+                ? "bg-[url('/images/hud/slot_add.png')] bg-cover bg-center hover:bg-[url('/images/hud/slot_add_hover.png')]"
+                : isHeroSlot
+                  ? "bg-[url('/images/hud/background_hero.png')] bg-cover bg-center"
+                  : hasUnit
+                    ? "bg-[url('/images/hud/slot.png')] bg-cover bg-center"
+                    : "bg-[url('/images/hud/slot.png')] bg-cover bg-center hover:brightness-110"
               const heroSlotMuted = isHeroSlotEmpty ? "opacity-70" : ""
+              const canOpenSelector = index === 0 || index === HERO_SLOT_INDEX
 
               return (
                 <div
                   key={`unit-${index}`}
-                  role="button"
-                  tabIndex={0}
-                  className={`${cellClass} relative cursor-pointer ${cellStyle} ${heroSlotMuted}`}
+                  role={canOpenSelector ? "button" : undefined}
+                  tabIndex={canOpenSelector ? 0 : undefined}
+                  className={`${cellClass} relative ${canOpenSelector ? "cursor-pointer" : "cursor-default"} ${cellStyle} ${heroSlotMuted}`}
                   id={`units-slot-${index}`}
-                  title={isHeroSlotEmpty ? "Hero slot (optional)" : undefined}
+                  title={isAddSlot ? "Add unit" : isHeroSlotEmpty ? "Hero slot (optional)" : undefined}
                   onClick={(e) => handleSlotClick(e, index)}
                   onContextMenu={(e) => handleSlotRightClick(e, index)}
                   onMouseEnter={
@@ -149,7 +164,7 @@ const Units = () => {
                   }
                   onMouseLeave={hasUnit ? () => setHoverTooltip(null) : undefined}
                 >
-                  {hasUnit && heroData && (
+                  {!isAddSlot && hasUnit && heroData && (
                     <img
                       src={getHeroIconPath(selectedFaction, heroData.imageName)}
                       alt={heroData.name}
@@ -158,7 +173,7 @@ const Units = () => {
                       className="w-16 h-16 object-contain"
                     />
                   )}
-                  {hasUnit && unitData && (
+                  {!isAddSlot && hasUnit && unitData && (
                     <img
                       src={getUnitIconPath(selectedFaction, unitData.name)}
                       alt={unitData.name}
@@ -179,6 +194,7 @@ const Units = () => {
               onSelect={handleSelectUnit}
               anchorPosition={anchorPosition}
               heroOnly={selectedSlotIndex === HERO_SLOT_INDEX}
+              remainingCP={selectedSlotIndex === 0 ? MAX_UNIT_CP - totalCP : undefined}
             />
           )}
         </div>

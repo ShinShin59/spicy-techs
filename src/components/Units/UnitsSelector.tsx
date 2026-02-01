@@ -14,11 +14,13 @@ interface AnchorPosition {
   y: number
 }
 
-interface UnitsSelectorProps {
+export interface UnitsSelectorProps {
   onClose: () => void
   onSelect: (unitId: string | null) => void
   anchorPosition: AnchorPosition
   heroOnly?: boolean
+  /** When adding units: remaining CP budget (65 - totalCP). Units with cpCost > this are disabled. */
+  remainingCP?: number
 }
 
 const UnitsSelector = ({
@@ -26,6 +28,7 @@ const UnitsSelector = ({
   onSelect,
   anchorPosition,
   heroOnly = false,
+  remainingCP,
 }: UnitsSelectorProps) => {
   const modalRef = useRef<HTMLDivElement>(null)
   const selectedFaction = useMainStore((s) => s.selectedFaction)
@@ -75,42 +78,53 @@ const UnitsSelector = ({
 
         {/* Units/Heroes grid */}
         <div className="flex p-3 gap-1 flex-wrap">
-          {units.map((unit) => (
-            <div
-              key={unit.id}
-              className="w-16 h-16 shrink-0"
-              onMouseEnter={(e) => {
-                const rect = e.currentTarget.getBoundingClientRect()
-                setHoverTooltip({
-                  unit,
-                  anchorRect: {
-                    left: rect.left,
-                    top: rect.top,
-                    width: rect.width,
-                    height: rect.height,
-                  },
-                })
-              }}
-              onMouseLeave={() => setHoverTooltip(null)}
-            >
-              <button
-                onClick={() => onSelect(unit.id)}
-                className="w-full h-full flex items-center justify-center hover:brightness-125 cursor-pointer"
+          {units.map((unit) => {
+            const unitCost = !heroOnly ? (unit as UnitData).cpCost ?? 0 : 0
+            const overBudget = remainingCP != null && unitCost > remainingCP
+            const disabled = !heroOnly && overBudget
+            return (
+              <div
+                key={unit.id}
+                className="w-16 h-16 shrink-0"
+                onMouseEnter={(e) => {
+                  const rect = e.currentTarget.getBoundingClientRect()
+                  setHoverTooltip({
+                    unit,
+                    anchorRect: {
+                      left: rect.left,
+                      top: rect.top,
+                      width: rect.width,
+                      height: rect.height,
+                    },
+                  })
+                }}
+                onMouseLeave={() => setHoverTooltip(null)}
               >
-                <img
-                  src={
-                    heroOnly
-                      ? getHeroIconPath(selectedFaction, (unit as HeroData).imageName)
-                      : getUnitIconPath(selectedFaction, (unit as UnitData).name)
-                  }
-                  alt={unit.name}
-                  loading="eager"
-                  decoding="sync"
-                  className="w-16 h-16 object-contain"
-                />
-              </button>
-            </div>
-          ))}
+                <button
+                  type="button"
+                  onClick={() => !disabled && onSelect(unit.id)}
+                  disabled={disabled}
+                  className={`w-full h-full flex items-center justify-center ${
+                    disabled
+                      ? "opacity-50 cursor-not-allowed grayscale"
+                      : "hover:brightness-125 cursor-pointer"
+                  }`}
+                >
+                  <img
+                    src={
+                      heroOnly
+                        ? getHeroIconPath(selectedFaction, (unit as HeroData).imageName)
+                        : getUnitIconPath(selectedFaction, (unit as UnitData).name)
+                    }
+                    alt={unit.name}
+                    loading="eager"
+                    decoding="sync"
+                    className="w-16 h-16 object-contain"
+                  />
+                </button>
+              </div>
+            )
+          })}
         </div>
 
         {/* Show message if no units available */}

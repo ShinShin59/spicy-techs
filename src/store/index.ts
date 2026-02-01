@@ -69,10 +69,10 @@ const initialArmoryState: ArmoryState = {
   corrino: createEmptyArmoryForFaction(),
 }
 
-/** Index of the hero slot (always first) */
-export const HERO_SLOT_INDEX = 0
+/** Index of the hero slot (always second; first is add slot) */
+export const HERO_SLOT_INDEX = 1
 
-/** Creates initial unit slots for a faction (1 hero slot + 5 unit slots) */
+/** Creates initial unit slots for a faction (1 add slot + 1 hero slot + 4 unit slots) */
 function createEmptyUnitSlotsForFaction(): (string | null)[] {
   return Array(6).fill(null)
 }
@@ -106,6 +106,8 @@ const initialCouncillorSlotsState: CouncillorSlotsState = {
 
 const DEFAULT_UNIT_SLOT_COUNT = 6
 export const MAX_UNIT_SLOT_COUNT = 26
+/** Max total CP for units (hero not counted); units that would exceed this are disabled in the add selector */
+export const MAX_UNIT_CP = 65
 
 /** Panel visibility state */
 export interface PanelVisibility {
@@ -186,7 +188,7 @@ interface MainStore {
   setArmorySlot: (unitIndex: number, slotIndex: number, gearName: string | null) => void
   setUnitSlot: (slotIndex: number, unitId: string | null) => void
   removeUnitSlot: (slotIndex: number) => void
-  addUnitSlot: () => void
+  addUnitSlot: () => number | undefined
   toggleCouncillor: (councillorId: string) => void
   toggleMainBase: () => void
   toggleArmory: () => void
@@ -394,9 +396,11 @@ export const useMainStore = create<MainStore>()(
       },
       addUnitSlot: () => {
         const g = get()
-        if (g.unitSlotCount >= MAX_UNIT_SLOT_COUNT) return
-        set({ unitSlotCount: g.unitSlotCount + 1 })
+        if (g.unitSlotCount >= MAX_UNIT_SLOT_COUNT) return undefined
+        const newSlotIndex = g.unitSlotCount
+        set({ unitSlotCount: newSlotIndex + 1 })
         get().saveCurrentBuild()
+        return newSlotIndex
       },
       setMainBaseCell: (rowIndex, groupIndex, cellIndex, buildingId) => {
         const { selectedFaction, mainBaseState, buildingOrder } = get()
@@ -456,6 +460,7 @@ export const useMainStore = create<MainStore>()(
         get().saveCurrentBuild()
       },
       setUnitSlot: (slotIndex, unitId) => {
+        if (slotIndex === 0) return // Add slot is not writable
         const { selectedFaction, unitSlots } = get()
         const factionUnitSlots = [...unitSlots[selectedFaction]]
         // Ensure the array is large enough
@@ -473,9 +478,10 @@ export const useMainStore = create<MainStore>()(
         get().saveCurrentBuild()
       },
       removeUnitSlot: (slotIndex) => {
+        if (slotIndex === 0) return // Add slot: no-op
         const { selectedFaction, unitSlots, unitSlotCount } = get()
         const factionUnitSlots = [...unitSlots[selectedFaction]]
-        // Hero slot (index 0): clear it, don't remove
+        // Hero slot (index 1): clear it, don't remove
         if (slotIndex === HERO_SLOT_INDEX) {
           factionUnitSlots[HERO_SLOT_INDEX] = null
           set({
@@ -485,11 +491,9 @@ export const useMainStore = create<MainStore>()(
             },
           })
         } else {
-          // Remove the slot at the given index
+          // Unit slot (2..N): remove slot and shift units down; decrement slot count
           factionUnitSlots.splice(slotIndex, 1)
-          // Decrease slot count (minimum DEFAULT_UNIT_SLOT_COUNT)
           const newSlotCount = Math.max(DEFAULT_UNIT_SLOT_COUNT, unitSlotCount - 1)
-
           set({
             unitSlots: {
               ...unitSlots,
@@ -509,11 +513,15 @@ export const useMainStore = create<MainStore>()(
         const councillorSlotsForFaction = Array.isArray(payload.councillors)
           ? payload.councillors
           : createEmptyCouncillorSlotsForFaction()
-        // Migrate shared builds: prepend hero slot if first slot is not a hero
+        // Migrate shared builds: ensure add slot at 0, hero at 1, length 6
         if (unitSlotsForFaction.length > 0) {
           const first = unitSlotsForFaction[0]
-          if (first && !/^[AHFSECV]_Hero_[12]$/.test(first)) {
-            unitSlotsForFaction = [null, ...unitSlotsForFaction]
+          if (first && /^[AHFSECV]_Hero_[12]$/.test(first)) {
+            unitSlotsForFaction = [null, ...unitSlotsForFaction].slice(0, 6)
+          } else if (first !== null) {
+            unitSlotsForFaction = [null, null, ...unitSlotsForFaction].slice(0, 6)
+          } else if (unitSlotsForFaction.length !== 6) {
+            unitSlotsForFaction = [...unitSlotsForFaction, ...Array(6).fill(null)].slice(0, 6)
           }
         }
         set({
@@ -815,7 +823,7 @@ export const useMainStore = create<MainStore>()(
         // Remove deprecated armoryOrder and unitsOrder (order removed from Units/Armory panels)
         delete migrated.armoryOrder
         delete migrated.unitsOrder
-        // Migrate unitSlots: prepend hero slot (null) to each faction if not already migrated
+        // Migrate unitSlots: add slot at 0, hero at 1, units at 2..5 (length 6)
         if (!migrated.unitSlots) {
           migrated.unitSlots = initialUnitSlotsState
         } else {
@@ -829,24 +837,36 @@ export const useMainStore = create<MainStore>()(
             "fremen",
             "corrino",
           ]
+          const heroRegex = /^[AHFSECV]_Hero_[12]$/
           let needsMigration = false
           for (const f of factionLabels) {
             const arr = slots[f]
             if (Array.isArray(arr) && arr.length > 0) {
               const first = arr[0]
-              if (first && !/^[AHFSECV]_Hero_[12]$/.test(first)) {
-                needsMigration = true
-                break
+              const second = arr[1]
+              // Already new format: add at 0, hero at 1
+              if (first === null && arr.length === 6 && (second === null || (typeof second === "string" && heroRegex.test(second)))) {
+                continue
               }
+              needsMigration = true
+              break
             }
           }
           if (needsMigration) {
             const newSlots = { ...slots } as UnitSlotsState
             for (const f of factionLabels) {
               const arr = newSlots[f]
-              if (Array.isArray(arr)) {
-                newSlots[f] = [null, ...arr]
+              if (!Array.isArray(arr) || arr.length === 0) continue
+              const first = arr[0]
+              let raw: (string | null | undefined)[]
+              if (first && heroRegex.test(first)) {
+                raw = [null, first, arr[1], arr[2], arr[3], arr[4]]
+              } else if (first === null && arr.length >= 2) {
+                raw = [null, null, arr[1], arr[2], arr[3], arr[4]]
+              } else {
+                raw = [null, null, arr[0], arr[1], arr[2], arr[3]]
               }
+              newSlots[f] = Array.from({ length: 6 }, (_, i) => raw[i] ?? null)
             }
             migrated.unitSlots = newSlots
             if (typeof migrated.unitSlotCount === "number" && migrated.unitSlotCount === 5) {
@@ -897,24 +917,35 @@ export const useMainStore = create<MainStore>()(
               updated.unitSlots = initialUnitSlotsState
             } else {
               const slots = (b as { unitSlots: UnitSlotsState }).unitSlots
-              let needsHeroMigration = false
+              const heroRegex = /^[AHFSECV]_Hero_[12]$/
+              let needsAddSlotMigration = false
               for (const f of factionLabels) {
                 const arr = slots[f]
                 if (Array.isArray(arr) && arr.length > 0) {
                   const first = arr[0]
-                  if (first && !/^[AHFSECV]_Hero_[12]$/.test(first)) {
-                    needsHeroMigration = true
-                    break
+                  const second = arr[1]
+                  if (first === null && arr.length === 6 && (second === null || (typeof second === "string" && heroRegex.test(second)))) {
+                    continue
                   }
+                  needsAddSlotMigration = true
+                  break
                 }
               }
-              if (needsHeroMigration) {
+              if (needsAddSlotMigration) {
                 const newSlots = { ...slots }
                 for (const f of factionLabels) {
                   const arr = newSlots[f]
-                  if (Array.isArray(arr)) {
-                    newSlots[f] = [null, ...arr]
+                  if (!Array.isArray(arr) || arr.length === 0) continue
+                  const first = arr[0]
+                  let raw: (string | null | undefined)[]
+                  if (first && heroRegex.test(first)) {
+                    raw = [null, first, arr[1], arr[2], arr[3], arr[4]]
+                  } else if (first === null && arr.length >= 2) {
+                    raw = [null, null, arr[1], arr[2], arr[3], arr[4]]
+                  } else {
+                    raw = [null, null, arr[0], arr[1], arr[2], arr[3]]
                   }
+                  newSlots[f] = Array.from({ length: 6 }, (_, i) => raw[i] ?? null)
                 }
                 updated.unitSlots = newSlots
                 if (typeof (b as { unitSlotCount?: number }).unitSlotCount === "number") {
