@@ -12,14 +12,13 @@ interface BuildLayoutProps {
 
 /**
  * Layout container for the build tiles.
- * - Top row: MainBase | Units | Councillors (side by side)
- * - Bottom row: Armory (full width of container)
+ * - Top row: Armory | MainBase | Units | Councillors (side by side)
+ * Armory grows to its content; Units match Main Base height when Main Base is visible.
  * Main Base keeps definitive proportions (does not fill width when other panels are off).
  * Width adapts to faction layout (e.g. Harkonnen needs more for [3,2] row).
- * Units panel max height is capped to Main Base height so slots can scale to fit.
  */
 const BuildLayout = ({ mainBase, units, councillors, armory }: BuildLayoutProps) => {
-  const hasTopRow = mainBase || units || councillors
+  const hasTopRow = mainBase || units || councillors || armory
   const selectedFaction = useMainStore((s) => s.selectedFaction)
   const mainBaseRef = useRef<HTMLDivElement>(null)
   const [mainBaseHeight, setMainBaseHeight] = useState<number | null>(null)
@@ -49,7 +48,12 @@ const BuildLayout = ({ mainBase, units, councillors, armory }: BuildLayoutProps)
     <div className="flex flex-col gap-6">
       {hasTopRow && (
         <MainBaseHeightContext.Provider value={mainBaseHeight}>
-          <div className="flex gap-10 items-start">
+          <div className="flex gap-6 items-start">
+            {armory && (
+              <div className="shrink-0 flex flex-col">
+                {armory}
+              </div>
+            )}
             <div ref={mainBaseRef} className="shrink-0" style={{ width: mainBaseWidth }}>
               {mainBase}
             </div>
@@ -58,8 +62,6 @@ const BuildLayout = ({ mainBase, units, councillors, armory }: BuildLayoutProps)
           </div>
         </MainBaseHeightContext.Provider>
       )}
-
-      {armory}
     </div>
   )
 }

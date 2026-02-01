@@ -13,6 +13,12 @@ import {
   type UnitData,
 } from "./armory-utils"
 
+const SLOT_PX = 48
+const ICON_PX = 36
+const LABEL_HEIGHT_PX = 14
+const SLOT_GAP_PX = 8
+const SEPARATOR_COLOR = "#524a3c"
+
 // Re-export for external use
 export { getUnitsForFaction, getGearByName, getGearOptionsForUnit, type GearItem, type UnitData }
 
@@ -98,94 +104,89 @@ const Armory = () => {
 
   return (
     <>
-      <div className="relative group flex flex-col w-full">
-        {/* Unit names row - centered */}
-        <div className="flex items-end justify-center">
-          {units.slice(0, UNITS_PER_FACTION).map((unit, unitIndex) => (
-            <div key={unit.id} className="flex items-center">
-              {/* Unit name spanning 2 slots (64px * 2 slots + 8px gap) */}
-              <div
-                className="text-[10px] font-mono text-white/70 text-center uppercase"
-                style={{ width: `${64 * GEAR_SLOTS_PER_UNIT + 8}px` }}
-              >
-                {unit.name}
-              </div>
-              {/* Separator after each pair (except last) */}
-              {unitIndex < UNITS_PER_FACTION - 1 && (
-                <div className="w-4 flex justify-center">
-                  <div className="h-4 w-px bg-zinc-600" />
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
+      <div className="relative group flex flex-col h-full min-h-0">
+        {/* Title at top, outside panel, aligned right */}
+        <h2 className="text-xs font-mono font-bold text-white/70 uppercase m-0 text-right">
+          Armory
+        </h2>
 
-        {/* Grid container */}
+        {/* Panel: column of unit blocks (unit name, 2 slots, separator except last) */}
         <div
           id="armory-grid"
-          className="relative bg-zinc-900 border border-zinc-700 flex items-center justify-center p-4 box-border w-full"
+          className="relative bg-zinc-900 border border-zinc-700 flex flex-col flex-1 min-h-0 p-4 box-border overflow-auto"
         >
           <PanelCorners />
-          {units.slice(0, UNITS_PER_FACTION).map((unit, unitIndex) => (
-            <div key={unit.id} className="flex items-center">
-              {/* Gear slots for this unit */}
-              <div className="flex gap-2">
-                {Array.from({ length: GEAR_SLOTS_PER_UNIT }).map((_, slotIndex) => {
-                  const gearName = armoryState[unitIndex]?.[slotIndex]
-                  const gearData = gearName ? getGearByName(gearName) : null
-                  const hasGear = gearName !== null && gearData !== undefined
-
-                  return (
-                    <div
-                      key={slotIndex}
-                      role="button"
-                      tabIndex={0}
-                      className={`relative w-[64px] h-[64px] cursor-pointer flex items-center justify-center overflow-hidden border border-zinc-700 ${hasGear ? "bg-[url('/images/hud/slot.png')] bg-cover bg-center" : "bg-[url('/images/hud/slot.png')] bg-cover bg-center hover:brightness-110"
-                        }`}
-                      id={`armory-slot-${unitIndex}-${slotIndex}`}
-                      onClick={(e) => handleSlotClick(e, unitIndex, slotIndex)}
-                      onContextMenu={(e) =>
-                        handleSlotRightClick(e, unitIndex, slotIndex)
-                      }
-                      onMouseEnter={
-                        hasGear && gearData
-                          ? (e) => {
-                            const rect = e.currentTarget.getBoundingClientRect()
-                            setHoverTooltip({
-                              gear: gearData,
-                              anchorRect: {
-                                left: rect.left,
-                                top: rect.top,
-                                width: rect.width,
-                                height: rect.height,
-                              },
-                            })
-                          }
-                          : undefined
-                      }
-                      onMouseLeave={hasGear ? () => setHoverTooltip(null) : undefined}
-                    >
-                      {hasGear && gearData && (
-                        <img
-                          src={getGearIconPath(gearData.image)}
-                          alt={gearData.name}
-                          loading="eager"
-                          decoding="sync"
-                          className="w-12 h-12 object-contain"
-                        />
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
-              {/* Separator after each pair (except last) */}
-              {unitIndex < UNITS_PER_FACTION - 1 && (
-                <div className="w-4 flex justify-center">
-                  <div className="h-16 w-px bg-zinc-600" />
+          <div className="flex flex-col gap-0">
+            {units.slice(0, UNITS_PER_FACTION).map((unit, unitIndex) => (
+              <div key={unit.id} className="flex flex-col shrink-0">
+                <div
+                  className="text-[10px] font-mono text-white/70 uppercase shrink-0 text-center"
+                  style={{ height: LABEL_HEIGHT_PX }}
+                >
+                  {unit.name}
                 </div>
-              )}
-            </div>
-          ))}
+                <div
+                  className="flex gap-2 shrink-0"
+                  style={{ gap: SLOT_GAP_PX }}
+                >
+                  {Array.from({ length: GEAR_SLOTS_PER_UNIT }).map((_, slotIndex) => {
+                    const gearName = armoryState[unitIndex]?.[slotIndex]
+                    const gearData = gearName ? getGearByName(gearName) : null
+                    const hasGear = gearName !== null && gearData !== undefined
+
+                    return (
+                      <div
+                        key={slotIndex}
+                        role="button"
+                        tabIndex={0}
+                        className={`relative cursor-pointer flex items-center justify-center overflow-hidden border border-zinc-700 shrink-0 ${hasGear ? "bg-[url('/images/hud/slot.png')] bg-cover bg-center" : "bg-[url('/images/hud/slot.png')] bg-cover bg-center hover:brightness-110"}`}
+                        style={{ width: SLOT_PX, height: SLOT_PX }}
+                        id={`armory-slot-${unitIndex}-${slotIndex}`}
+                        onClick={(e) => handleSlotClick(e, unitIndex, slotIndex)}
+                        onContextMenu={(e) =>
+                          handleSlotRightClick(e, unitIndex, slotIndex)
+                        }
+                        onMouseEnter={
+                          hasGear && gearData
+                            ? (e) => {
+                              const rect = e.currentTarget.getBoundingClientRect()
+                              setHoverTooltip({
+                                gear: gearData,
+                                anchorRect: {
+                                  left: rect.left,
+                                  top: rect.top,
+                                  width: rect.width,
+                                  height: rect.height,
+                                },
+                              })
+                            }
+                            : undefined
+                        }
+                        onMouseLeave={hasGear ? () => setHoverTooltip(null) : undefined}
+                      >
+                        {hasGear && gearData && (
+                          <img
+                            src={getGearIconPath(gearData.image)}
+                            alt={gearData.name}
+                            loading="eager"
+                            decoding="sync"
+                            className="object-contain"
+                            style={{ width: ICON_PX, height: ICON_PX }}
+                          />
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+                {unitIndex < UNITS_PER_FACTION - 1 && (
+                  <div
+                    className="shrink-0 w-full"
+                    style={{ height: 1, backgroundColor: SEPARATOR_COLOR, marginTop: 6, marginBottom: 6 }}
+                  />
+                )}
+              </div>
+            ))}
+          </div>
 
           {/* Gear selector popup */}
           {selectedSlot && anchorPosition && (
@@ -198,11 +199,6 @@ const Armory = () => {
             />
           )}
         </div>
-
-        {/* Title at bottom left */}
-        <h2 className="text-xs font-mono font-bold text-white/70 uppercase m-0 mt-1">
-          Armory
-        </h2>
       </div>
 
       {/* Hover tooltip */}

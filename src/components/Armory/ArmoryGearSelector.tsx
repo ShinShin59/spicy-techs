@@ -62,14 +62,7 @@ const ArmoryGearSelector = ({
         className="z-50 bg-zinc-900 border border-zinc-700 flex flex-col"
         style={popupStyle}
       >
-        {/* Title */}
-        <div className="flex items-center justify-center gap-4 px-4 py-2 border-b border-zinc-700">
-          <div className="flex-1 h-px bg-zinc-600" />
-          <h2 className="text-sm font-bold tracking-wider text-zinc-200 uppercase">
-            {unit.name} Gear
-          </h2>
-          <div className="flex-1 h-px bg-zinc-600" />
-        </div>
+
 
         {/* Gear grid - 4 options in a row */}
         <div className="flex p-3 gap-2">
@@ -79,7 +72,7 @@ const ArmoryGearSelector = ({
             return (
               <div
                 key={gear.name}
-                className="w-14 h-14 shrink-0"
+                className="shrink-0 flex items-center justify-center overflow-hidden"
                 onMouseEnter={(e) => {
                   const rect = e.currentTarget.getBoundingClientRect()
                   setHoverTooltip({
