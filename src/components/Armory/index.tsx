@@ -51,6 +51,7 @@ const Armory = () => {
     unitIndex: number,
     slotIndex: number
   ) => {
+    setHoverTooltip(null)
     const isSameSlot =
       selectedSlot &&
       selectedSlot.unitIndex === unitIndex &&

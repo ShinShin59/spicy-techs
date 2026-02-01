@@ -83,10 +83,10 @@ const DitherBackground = () => {
         waveColor={waveColor}
         waveDirection={waveDirection}
         disableAnimation={false}
-        enableMouseInteraction={false}
-        mouseRadius={0.5}
-        colorNum={4}
-        pixelSize={1}
+        enableMouseInteraction={true}
+        mouseRadius={1.}
+        colorNum={6}
+        pixelSize={2}
         waveAmplitude={waveAmplitude}
         waveFrequency={3}
       />

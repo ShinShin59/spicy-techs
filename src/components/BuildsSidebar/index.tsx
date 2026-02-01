@@ -195,11 +195,7 @@ const BuildRow = memo(function BuildRow({ build, isSelected, onLoad, onDuplicate
   )
 })
 
-interface BuildsSidebarProps {
-  onClose: () => void
-}
-
-const BuildsSidebar = ({ onClose }: BuildsSidebarProps) => {
+const BuildsSidebar = () => {
   const savedBuilds = useMainStore((s) => s.savedBuilds)
   const currentBuildId = useMainStore((s) => s.currentBuildId)
   const loadBuild = useMainStore((s) => s.loadBuild)
@@ -215,27 +211,17 @@ const BuildsSidebar = ({ onClose }: BuildsSidebarProps) => {
   }
 
   return (
-    <aside
-      className="relative w-[280px] max-w-[90vw] flex flex-col border border-zinc-700 bg-zinc-900 shadow-xl overflow-hidden"
-      aria-label="Build list"
-    >
-      <PanelCorners />
-      <div className="flex items-center justify-between p-3 border-b border-zinc-700 shrink-0">
+    <div className="shrink-0 w-[280px] self-start flex flex-col min-h-0 max-h-[calc(100vh-2.5rem-4em-1rem)] overflow-y-auto">
+      <aside
+        className="relative w-full flex flex-col border border-zinc-700 bg-zinc-900 shadow-xl overflow-hidden"
+        aria-label="Build list"
+      >
+        <PanelCorners />
+      <div className="flex items-center p-3 border-b border-zinc-700 shrink-0">
         <h2 className="text-sm font-semibold text-zinc-200">Builds</h2>
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Close"
-          className="p-1.5 text-zinc-400 hover:text-white hover:bg-zinc-700 transition-colors cursor-pointer"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M18 6 6 18" />
-            <path d="m6 6 12 12" />
-          </svg>
-        </button>
       </div>
 
-      <div className="overflow-y-auto p-3 space-y-2 min-h-0">
+      <div className="p-3 space-y-2">
         {savedBuilds.length === 0 ? (
           <p className="text-sm text-zinc-500 py-4 text-center">No saved builds</p>
         ) : (
@@ -252,7 +238,8 @@ const BuildsSidebar = ({ onClose }: BuildsSidebarProps) => {
           ))
         )}
       </div>
-    </aside>
+      </aside>
+    </div>
   )
 }
 

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react"
-import { useUIStore, useMainStore } from "@/store"
+import { useMainStore } from "@/store"
 import FactionSelector from "@/components/FactionSelector"
 import Button from "@/components/Button"
 import { playMenuToggleSound } from "@/utils/sound"
@@ -15,14 +15,11 @@ const Topbar = ({ onNew, onFork }: TopbarProps) => {
   const isInitialMount = useRef(true)
   const selectedFaction = useMainStore((s) => s.selectedFaction)
   const currentBuildId = useMainStore((s) => s.currentBuildId)
-  const sidebarOpen = useUIStore((s) => s.sidebarOpen)
-  const toggleSidebar = useUIStore((s) => s.toggleSidebar)
   const panelVisibility = useMainStore((s) => s.panelVisibility)
   const toggleMainBase = useMainStore((s) => s.toggleMainBase)
   const toggleArmory = useMainStore((s) => s.toggleArmory)
   const toggleUnits = useMainStore((s) => s.toggleUnits)
   const toggleCouncillors = useMainStore((s) => s.toggleCouncillors)
-  const toggleMetadata = useMainStore((s) => s.toggleMetadata)
 
   const factionBgVar = `var(--color-faction-${selectedFaction})` as const
   const sideBgImage = "url(/images/hud/sides_left.png), url(/images/hud/sides_right.png)"
@@ -113,34 +110,6 @@ const Topbar = ({ onNew, onFork }: TopbarProps) => {
           mutedWhenUnpressed
         >
           Councillors
-        </Button>
-        <Button
-          onClick={() => {
-            const willOpen = !panelVisibility.metadataOpen
-            toggleMetadata()
-            playMenuToggleSound(willOpen)
-          }}
-          aria-pressed={panelVisibility.metadataOpen}
-          aria-label="Toggle Metadata"
-          pressed={panelVisibility.metadataOpen}
-          mutedWhenUnpressed
-        >
-          Meta
-        </Button>
-        <Button
-          onClick={() => {
-            const willOpen = !sidebarOpen
-            toggleSidebar()
-            playMenuToggleSound(willOpen)
-          }}
-          aria-pressed={sidebarOpen}
-          aria-label="Open build list"
-          pressed={sidebarOpen}
-          mutedWhenUnpressed
-          primary
-          className="ml-3"
-        >
-          Builds
         </Button>
       </div>
       {/* Logo – H1 with Dune Rise, halo rest animation, hidden until font loads then fades in */}

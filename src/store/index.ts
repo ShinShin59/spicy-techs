@@ -115,7 +115,6 @@ export interface PanelVisibility {
   armoryOpen: boolean
   unitsOpen: boolean
   councillorsOpen: boolean
-  metadataOpen: boolean
 }
 
 const initialPanelVisibility: PanelVisibility = {
@@ -123,20 +122,46 @@ const initialPanelVisibility: PanelVisibility = {
   armoryOpen: true,
   unitsOpen: true,
   councillorsOpen: true,
-  metadataOpen: false,
 }
 
-/** Build metadata (author, social, commentary) */
+/** Build metadata (author, social, commentary, media) */
 export interface BuildMetadata {
   author: string
   social: string
   commentary: string
+  media: string
 }
 
 const DEFAULT_AUTHOR = "anon"
 
 function createEmptyMetadata(author: string = DEFAULT_AUTHOR): BuildMetadata {
-  return { author, social: "", commentary: "" }
+  return { author, social: "", commentary: "", media: "" }
+}
+
+function normalizeOptionalUrl(value: string): string {
+  const trimmed = value.trim()
+  if (!trimmed) return ""
+  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) return trimmed
+  return `https://${trimmed}`
+}
+
+function normalizePanelVisibility(pv: Partial<PanelVisibility> | undefined): PanelVisibility {
+  return {
+    mainBaseOpen: pv?.mainBaseOpen ?? initialPanelVisibility.mainBaseOpen,
+    armoryOpen: pv?.armoryOpen ?? initialPanelVisibility.armoryOpen,
+    unitsOpen: pv?.unitsOpen ?? initialPanelVisibility.unitsOpen,
+    councillorsOpen: pv?.councillorsOpen ?? initialPanelVisibility.councillorsOpen,
+  }
+}
+
+function normalizeMetadata(m: BuildMetadata | undefined, defaultAuthor: string): BuildMetadata {
+  if (!m) return createEmptyMetadata(defaultAuthor)
+  return {
+    author: typeof m.author === "string" ? m.author : defaultAuthor,
+    social: typeof m.social === "string" ? m.social : "",
+    commentary: typeof m.commentary === "string" ? m.commentary : "",
+    media: typeof m.media === "string" ? m.media : "",
+  }
 }
 
 /** Saved build (local list, id not in URL) */
@@ -194,9 +219,9 @@ interface MainStore {
   toggleArmory: () => void
   toggleUnits: () => void
   toggleCouncillors: () => void
-  toggleMetadata: () => void
   setMetadataAuthor: (author: string) => void
   setMetadataSocial: (social: string) => void
+  setMetadataMedia: (media: string) => void
   setMetadataCommentary: (commentary: string) => void
   loadSharedBuild: (payload: SharedBuildPayload) => void
   setCurrentBuildName: (name: string) => void
@@ -369,11 +394,6 @@ export const useMainStore = create<MainStore>()(
         })
         get().saveCurrentBuild()
       },
-      toggleMetadata: () => {
-        const { panelVisibility } = get()
-        set({ panelVisibility: { ...panelVisibility, metadataOpen: !panelVisibility.metadataOpen } })
-        get().saveCurrentBuild()
-      },
       setMetadataAuthor: (author) => {
         const { metadata } = get()
         const trimmed = author.trim() || DEFAULT_AUTHOR
@@ -386,7 +406,12 @@ export const useMainStore = create<MainStore>()(
       },
       setMetadataSocial: (social) => {
         const { metadata } = get()
-        set({ metadata: { ...metadata, social } })
+        set({ metadata: { ...metadata, social: normalizeOptionalUrl(social) } })
+        get().saveCurrentBuild()
+      },
+      setMetadataMedia: (media) => {
+        const { metadata } = get()
+        set({ metadata: { ...metadata, media: normalizeOptionalUrl(media) } })
         get().saveCurrentBuild()
       },
       setMetadataCommentary: (commentary) => {
@@ -632,8 +657,8 @@ export const useMainStore = create<MainStore>()(
         const armoryState = build.armoryState || initialArmoryState
         const unitSlots = build.unitSlots || initialUnitSlotsState
         const councillorSlots = build.councillorSlots || initialCouncillorSlotsState
-        const panelVisibility = build.panelVisibility || initialPanelVisibility
-        const metadata = build.metadata || createEmptyMetadata(defaultAuthor)
+        const panelVisibility = normalizePanelVisibility(build.panelVisibility)
+        const metadata = normalizeMetadata(build.metadata, defaultAuthor)
         const snapshot = getBuildSnapshot({
           selectedFaction: build.selectedFaction,
           mainBaseState: build.mainBaseState,
@@ -654,7 +679,7 @@ export const useMainStore = create<MainStore>()(
           unitSlotCount,
           unitSlots: deepClone(unitSlots),
           councillorSlots: deepClone(councillorSlots),
-          panelVisibility: deepClone(panelVisibility),
+          panelVisibility,
           metadata: deepClone(metadata),
           currentBuildName: build.name,
           currentBuildId: id,
@@ -669,8 +694,8 @@ export const useMainStore = create<MainStore>()(
         const armoryState = build.armoryState || initialArmoryState
         const unitSlots = build.unitSlots || initialUnitSlotsState
         const councillorSlots = build.councillorSlots || initialCouncillorSlotsState
-        const panelVisibility = build.panelVisibility || initialPanelVisibility
-        const metadata = build.metadata || createEmptyMetadata(defaultAuthor)
+        const panelVisibility = normalizePanelVisibility(build.panelVisibility)
+        const metadata = normalizeMetadata(build.metadata, defaultAuthor)
         const newName = getUniqueBuildName(build.name + " (copy)", savedBuilds)
         const newId = generateBuildId()
         const duplicated: SavedBuild = {
@@ -684,7 +709,7 @@ export const useMainStore = create<MainStore>()(
           unitSlotCount,
           unitSlots: deepClone(unitSlots),
           councillorSlots: deepClone(councillorSlots),
-          panelVisibility: deepClone(panelVisibility),
+          panelVisibility,
           metadata: deepClone(metadata),
         }
         const snapshot = getBuildSnapshot({
@@ -708,7 +733,7 @@ export const useMainStore = create<MainStore>()(
           unitSlotCount: duplicated.unitSlotCount,
           unitSlots: deepClone(duplicated.unitSlots),
           councillorSlots: deepClone(duplicated.councillorSlots),
-          panelVisibility: deepClone(duplicated.panelVisibility),
+          panelVisibility: duplicated.panelVisibility,
           metadata: deepClone(duplicated.metadata),
           currentBuildName: duplicated.name,
           currentBuildId: newId,
@@ -878,14 +903,10 @@ export const useMainStore = create<MainStore>()(
         if (!migrated.councillorSlots) {
           migrated.councillorSlots = initialCouncillorSlotsState
         }
-        // Migrate panelVisibility if missing
-        if (!migrated.panelVisibility) {
-          migrated.panelVisibility = initialPanelVisibility
-        }
-        // Migrate metadata if missing
-        if (!migrated.metadata) {
-          migrated.metadata = createEmptyMetadata(defaultAuthor)
-        }
+        // Migrate panelVisibility if missing or strip metadataOpen
+        migrated.panelVisibility = normalizePanelVisibility(migrated.panelVisibility as Partial<PanelVisibility> | undefined)
+        // Migrate metadata if missing or add media
+        migrated.metadata = normalizeMetadata(migrated.metadata as BuildMetadata | undefined, defaultAuthor)
         // Migrate defaultAuthor if missing
         if (!migrated.defaultAuthor) {
           migrated.defaultAuthor = DEFAULT_AUTHOR
@@ -958,12 +979,8 @@ export const useMainStore = create<MainStore>()(
               }
             }
             delete updated.unitsOrder
-            if (!(b as { panelVisibility?: unknown }).panelVisibility) {
-              updated.panelVisibility = initialPanelVisibility
-            }
-            if (!(b as { metadata?: unknown }).metadata) {
-              updated.metadata = createEmptyMetadata(defaultAuthor)
-            }
+            updated.panelVisibility = normalizePanelVisibility((b as { panelVisibility?: Partial<PanelVisibility> }).panelVisibility)
+            updated.metadata = normalizeMetadata((b as { metadata?: BuildMetadata }).metadata, defaultAuthor)
             return updated
           })
         }
