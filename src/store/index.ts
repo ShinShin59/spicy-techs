@@ -72,9 +72,9 @@ const initialArmoryState: ArmoryState = {
 /** Index of the hero slot (always second; first is add slot) */
 export const HERO_SLOT_INDEX = 1
 
-/** Creates initial unit slots for a faction (1 add slot + 1 hero slot + 4 unit slots) */
+/** Creates initial unit slots for a faction (1 add slot + 1 hero slot; no empty unit slots by default) */
 function createEmptyUnitSlotsForFaction(): (string | null)[] {
-  return Array(6).fill(null)
+  return [null, null]
 }
 
 /** Initial unit slots state (empty for all factions) */
@@ -104,7 +104,7 @@ const initialCouncillorSlotsState: CouncillorSlotsState = {
   corrino: createEmptyCouncillorSlotsForFaction(),
 }
 
-const DEFAULT_UNIT_SLOT_COUNT = 6
+const DEFAULT_UNIT_SLOT_COUNT = 2
 export const MAX_UNIT_SLOT_COUNT = 26
 /** Max total CP for units (hero not counted); units that would exceed this are disabled in the add selector */
 export const MAX_UNIT_CP = 65
@@ -531,7 +531,7 @@ export const useMainStore = create<MainStore>()(
           armoryState: { ...armoryState, [payload.f]: armoryForFaction },
           unitSlots: { ...unitSlots, [payload.f]: unitSlotsForFaction },
           councillorSlots: { ...councillorSlots, [payload.f]: councillorSlotsForFaction },
-          unitSlotCount: DEFAULT_UNIT_SLOT_COUNT,
+          unitSlotCount: Math.max(DEFAULT_UNIT_SLOT_COUNT, unitSlotsForFaction.length),
           metadata: createEmptyMetadata(defaultAuthor),
           currentBuildId: null,
         })
@@ -904,7 +904,11 @@ export const useMainStore = create<MainStore>()(
           migrated.savedBuilds = builds.map((b: Record<string, unknown>) => {
             const updated = { ...b }
             if (typeof (b as { unitSlotCount?: number }).unitSlotCount !== "number") {
-              updated.unitSlotCount = DEFAULT_UNIT_SLOT_COUNT
+              const slots = (b as { unitSlots?: UnitSlotsState }).unitSlots
+              const maxLen = slots
+                ? Math.max(0, ...FACTION_LABELS.map((f) => (slots[f]?.length ?? 0)))
+                : 0
+              updated.unitSlotCount = Math.max(DEFAULT_UNIT_SLOT_COUNT, maxLen)
             }
             if (!(b as { armoryState?: unknown }).armoryState) {
               updated.armoryState = initialArmoryState

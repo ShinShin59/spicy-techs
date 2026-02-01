@@ -2,6 +2,7 @@ import { useState } from "react"
 import { useCurrentMainBaseLayout, useCurrentMainBaseState, useMainStore, useUsedBuildingIds, useCurrentBuildingOrder, getBuildingOrderNumber, type BuildingCoords } from "../../store"
 import MainBaseBuildingsSelector, { type MainBuilding } from "./MainBaseBuildingsSelector"
 import { getBuildingIconPath } from "@/utils/assetPaths"
+import { playCancelSlotSound } from "@/utils/sound"
 import BuildingAttributesTooltip from "./BuildingAttributesTooltip"
 import OrderBadge from "@/components/OrderBadge"
 import PanelCorners from "@/components/PanelCorners"
@@ -81,6 +82,7 @@ const MainBase = () => {
     e.preventDefault()
     const buildingName = mainBaseState[rowIndex]?.[groupIndex]?.[cellIndex]
     if (buildingName !== null) {
+      playCancelSlotSound()
       setMainBaseCell(rowIndex, groupIndex, cellIndex, null)
       setHoverTooltip(null)
     }

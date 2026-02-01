@@ -2,6 +2,7 @@ import { useState, useEffect } from "react"
 import { useUIStore, useMainStore } from "@/store"
 import FactionSelector from "@/components/FactionSelector"
 import Button from "@/components/Button"
+import { playMenuToggleSound } from "@/utils/sound"
 
 interface TopbarProps {
   onNew: () => void
@@ -49,7 +50,11 @@ const Topbar = ({ onNew, onFork }: TopbarProps) => {
       </div>
       <div className="flex items-center gap-2 relative z-10">
         <Button
-          onClick={toggleMainBase}
+          onClick={() => {
+            const willOpen = !panelVisibility.mainBaseOpen
+            toggleMainBase()
+            playMenuToggleSound(willOpen)
+          }}
           aria-pressed={panelVisibility.mainBaseOpen}
           aria-label="Toggle Main Base"
           pressed={panelVisibility.mainBaseOpen}
@@ -58,7 +63,11 @@ const Topbar = ({ onNew, onFork }: TopbarProps) => {
           Main Base
         </Button>
         <Button
-          onClick={toggleArmory}
+          onClick={() => {
+            const willOpen = !panelVisibility.armoryOpen
+            toggleArmory()
+            playMenuToggleSound(willOpen)
+          }}
           aria-pressed={panelVisibility.armoryOpen}
           aria-label="Toggle Armory"
           pressed={panelVisibility.armoryOpen}
@@ -67,7 +76,11 @@ const Topbar = ({ onNew, onFork }: TopbarProps) => {
           Armory
         </Button>
         <Button
-          onClick={toggleUnits}
+          onClick={() => {
+            const willOpen = !panelVisibility.unitsOpen
+            toggleUnits()
+            playMenuToggleSound(willOpen)
+          }}
           aria-pressed={panelVisibility.unitsOpen}
           aria-label="Toggle Units"
           pressed={panelVisibility.unitsOpen}
@@ -76,7 +89,11 @@ const Topbar = ({ onNew, onFork }: TopbarProps) => {
           Units
         </Button>
         <Button
-          onClick={toggleCouncillors}
+          onClick={() => {
+            const willOpen = !panelVisibility.councillorsOpen
+            toggleCouncillors()
+            playMenuToggleSound(willOpen)
+          }}
           aria-pressed={panelVisibility.councillorsOpen}
           aria-label="Toggle Councillors"
           pressed={panelVisibility.councillorsOpen}
@@ -85,7 +102,11 @@ const Topbar = ({ onNew, onFork }: TopbarProps) => {
           Councillors
         </Button>
         <Button
-          onClick={toggleMetadata}
+          onClick={() => {
+            const willOpen = !panelVisibility.metadataOpen
+            toggleMetadata()
+            playMenuToggleSound(willOpen)
+          }}
           aria-pressed={panelVisibility.metadataOpen}
           aria-label="Toggle Metadata"
           pressed={panelVisibility.metadataOpen}
@@ -94,7 +115,11 @@ const Topbar = ({ onNew, onFork }: TopbarProps) => {
           Meta
         </Button>
         <Button
-          onClick={toggleSidebar}
+          onClick={() => {
+            const willOpen = !sidebarOpen
+            toggleSidebar()
+            playMenuToggleSound(willOpen)
+          }}
           aria-pressed={sidebarOpen}
           aria-label="Open build list"
           pressed={sidebarOpen}

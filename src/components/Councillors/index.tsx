@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { useMainStore, useCurrentCouncillorSlots } from "@/store"
 import { getCouncillorIconPath } from "@/utils/assetPaths"
+import { playSound } from "@/utils/sound"
 import { getCouncillorById, type CouncillorData } from "./councillors-utils"
 import CouncillorsSelector from "./CouncillorsSelector"
 import CouncillorTooltip from "./CouncillorTooltip"
@@ -35,6 +36,8 @@ const Councillors = () => {
   }
 
   const handleSelect = (councillorId: string) => {
+    const isAdding = !selectedIds.includes(councillorId)
+    if (isAdding) playSound("UI_Mainmenu_Pickcouncelor.mp3")
     toggleCouncillor(councillorId)
   }
 

@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { useMainStore, useCurrentArmoryState, UNITS_PER_FACTION, GEAR_SLOTS_PER_UNIT } from "../../store"
 import { getGearIconPath } from "@/utils/assetPaths"
+import { playCancelSlotSound } from "@/utils/sound"
 import ArmoryGearSelector from "./ArmoryGearSelector"
 import GearAttributesTooltip from "./GearAttributesTooltip"
 import PanelCorners from "@/components/PanelCorners"
@@ -70,6 +71,7 @@ const Armory = () => {
     e.preventDefault()
     const gearName = armoryState[unitIndex]?.[slotIndex]
     if (gearName !== null) {
+      playCancelSlotSound()
       setArmorySlot(unitIndex, slotIndex, null)
       setHoverTooltip(null)
     }

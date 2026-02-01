@@ -45,6 +45,21 @@ export function playRandomSound(paths: string[]): void {
 
 // --- Convenience: common sound sets (filenames under /sounds) ---
 
+/** Played when clearing a slot (right-click delete) in Units, MainBase, or Armory. */
+const CANCEL_SLOT_SOUND = "cancel_unit.mp3"
+
+export function playCancelSlotSound(): void {
+  playSound(CANCEL_SLOT_SOUND)
+}
+
+/** Topbar panel/sidebar toggle: play open or close sound based on new state. */
+const UI_MENU_OPEN = "UI_Mainmenu_Button_open.mp3"
+const UI_MENU_CLOSE = "UI_Mainmenu_Button_close.mp3"
+
+export function playMenuToggleSound(isOpening: boolean): void {
+  playSound(isOpening ? UI_MENU_OPEN : UI_MENU_CLOSE)
+}
+
 export const BUTTON_SPENDRESOURCES_SOUNDS = [
   "Button_Spendresources.mp3",
   "Button_Spendresources_2.mp3",

@@ -67,17 +67,22 @@ const UnitsSelector = ({
     [anchorPosition.x, anchorPosition.y]
   )
 
+  // Match Units panel: 64px slots, slot/hero bg; icon fills slot
+  const slotBgClass = heroOnly
+    ? "bg-[url('/images/hud/background_hero.png')] bg-cover bg-center"
+    : "bg-cover bg-center"
+
   return (
     <>
       {/* Modal content */}
       <div
         ref={modalRef}
-        className="z-50 bg-zinc-900 border border-zinc-700 flex flex-col"
+        className="z-50 bg-zinc-900 border border-zinc-700 flex flex-col p-2"
         style={popupStyle}
       >
 
-        {/* Units/Heroes grid */}
-        <div className="flex p-3 gap-1 flex-wrap">
+        {/* Units/Heroes grid - same slot style and size as Units panel */}
+        <div className="flex gap-2 flex-wrap">
           {units.map((unit) => {
             const unitCost = !heroOnly ? (unit as UnitData).cpCost ?? 0 : 0
             const overBudget = remainingCP != null && unitCost > remainingCP
@@ -85,7 +90,7 @@ const UnitsSelector = ({
             return (
               <div
                 key={unit.id}
-                className="w-16 h-16 shrink-0"
+                className="shrink-0 flex items-center justify-center overflow-hidden"
                 onMouseEnter={(e) => {
                   const rect = e.currentTarget.getBoundingClientRect()
                   setHoverTooltip({
@@ -104,11 +109,10 @@ const UnitsSelector = ({
                   type="button"
                   onClick={() => !disabled && onSelect(unit.id)}
                   disabled={disabled}
-                  className={`w-full h-full flex items-center justify-center ${
-                    disabled
-                      ? "opacity-50 cursor-not-allowed grayscale"
-                      : "hover:brightness-125 cursor-pointer"
-                  }`}
+                  className={`flex items-center w-16 h-16 justify-center ${slotBgClass} ${disabled
+                    ? "opacity-50 cursor-not-allowed grayscale"
+                    : "hover:brightness-110 cursor-pointer"
+                    }`}
                 >
                   <img
                     src={
@@ -119,7 +123,7 @@ const UnitsSelector = ({
                     alt={unit.name}
                     loading="eager"
                     decoding="sync"
-                    className="w-16 h-16 object-contain"
+                    className="w-full h-full object-contain"
                   />
                 </button>
               </div>
@@ -127,12 +131,6 @@ const UnitsSelector = ({
           })}
         </div>
 
-        {/* Show message if no units available */}
-        {units.length === 0 && !heroOnly && (
-          <div className="px-4 py-2 text-zinc-500 text-sm">
-            No units available for this faction
-          </div>
-        )}
       </div>
 
       {/* Hover tooltip */}
