@@ -20,6 +20,7 @@ const Topbar = ({ onNew, onFork }: TopbarProps) => {
   const toggleArmory = useMainStore((s) => s.toggleArmory)
   const toggleUnits = useMainStore((s) => s.toggleUnits)
   const toggleCouncillors = useMainStore((s) => s.toggleCouncillors)
+  const toggleDevelopments = useMainStore((s) => s.toggleDevelopments)
   const toggleOperations = useMainStore((s) => s.toggleOperations)
 
   const factionBgVar = `var(--color-faction-${selectedFaction})` as const
@@ -60,6 +61,19 @@ const Topbar = ({ onNew, onFork }: TopbarProps) => {
         </Button>
       </div>
       <div className="flex items-center gap-2 relative z-10">
+        <Button
+          onClick={() => {
+            const willOpen = !panelVisibility.developmentsOpen
+            toggleDevelopments()
+            playMenuToggleSound(willOpen)
+          }}
+          aria-pressed={panelVisibility.developmentsOpen}
+          aria-label="Toggle Developments"
+          pressed={panelVisibility.developmentsOpen}
+          mutedWhenUnpressed
+        >
+          Developments
+        </Button>
         <Button
           onClick={() => {
             const willOpen = !panelVisibility.mainBaseOpen

@@ -1,4 +1,4 @@
-import { FACTION_LABELS, type FactionLabel } from "@/store"
+import { FACTION_LABELS, type FactionLabel, type DevelopmentsSummary } from "@/store"
 import armoryData from "@/components/Armory/armory.json"
 import mainBuildingsData from "@/components/MainBase/MainBaseBuildingsSelector/main-buildings.json"
 import unitsData from "@/components/Units/units.json"
@@ -65,6 +65,17 @@ export function isImagePreloaded(src: string): boolean {
  */
 export function getHudImagePath(fileName: string): string {
   return `${HUD_IMAGES_PATH}/${fileName}`
+}
+
+const DEVELOPMENTS_SLOT_IMAGES: Record<keyof DevelopmentsSummary, string> = {
+  economic: "slot_economic.png",
+  military: "slot_military.png",
+  green: "slot_green.png",
+  statecraft: "slot_statecraft.png",
+}
+
+export function getDevelopmentsSlotPath(category: keyof DevelopmentsSummary): string {
+  return getHudImagePath(DEVELOPMENTS_SLOT_IMAGES[category])
 }
 
 function initPreload(): void {

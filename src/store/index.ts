@@ -138,6 +138,22 @@ export interface PanelVisibility {
   unitsOpen: boolean
   councillorsOpen: boolean
   operationsOpen: boolean
+  developmentsOpen: boolean
+}
+
+/** Developments summary: one number per category (per build) */
+export interface DevelopmentsSummary {
+  economic: number
+  military: number
+  green: number
+  statecraft: number
+}
+
+const initialDevelopmentsSummary: DevelopmentsSummary = {
+  economic: 0,
+  military: 0,
+  green: 0,
+  statecraft: 0,
 }
 
 const initialPanelVisibility: PanelVisibility = {
@@ -146,6 +162,7 @@ const initialPanelVisibility: PanelVisibility = {
   unitsOpen: true,
   councillorsOpen: true,
   operationsOpen: true,
+  developmentsOpen: true,
 }
 
 /** Build metadata (author, social, commentary, media) */
@@ -176,6 +193,7 @@ function normalizePanelVisibility(pv: Partial<PanelVisibility> | undefined): Pan
     unitsOpen: pv?.unitsOpen ?? initialPanelVisibility.unitsOpen,
     councillorsOpen: pv?.councillorsOpen ?? initialPanelVisibility.councillorsOpen,
     operationsOpen: pv?.operationsOpen ?? initialPanelVisibility.operationsOpen,
+    developmentsOpen: pv?.developmentsOpen ?? (pv as { knowledgeOpen?: boolean })?.knowledgeOpen ?? initialPanelVisibility.developmentsOpen,
   }
 }
 
@@ -203,6 +221,7 @@ export interface SavedBuild {
   councillorSlots: CouncillorSlotsState
   operationSlots: OperationSlotsState
   panelVisibility: PanelVisibility
+  developmentsSummary: DevelopmentsSummary
   metadata: BuildMetadata
 }
 
@@ -229,6 +248,7 @@ interface MainStore {
   councillorSlots: CouncillorSlotsState
   operationSlots: OperationSlotsState
   panelVisibility: PanelVisibility
+  developmentsSummary: DevelopmentsSummary
   metadata: BuildMetadata
   defaultAuthor: string
   currentBuildName: string
@@ -248,6 +268,7 @@ interface MainStore {
   toggleUnits: () => void
   toggleCouncillors: () => void
   toggleOperations: () => void
+  toggleDevelopments: () => void
   setMetadataAuthor: (author: string) => void
   setMetadataSocial: (social: string) => void
   setMetadataMedia: (media: string) => void
@@ -278,6 +299,7 @@ export function getBuildSnapshot(state: {
   councillorSlots: CouncillorSlotsState
   operationSlots: OperationSlotsState
   panelVisibility: PanelVisibility
+  developmentsSummary: DevelopmentsSummary
   metadata: BuildMetadata
   currentBuildName: string
 }): string {
@@ -291,6 +313,7 @@ export function getBuildSnapshot(state: {
     councillorSlots: state.councillorSlots,
     operationSlots: state.operationSlots,
     panelVisibility: state.panelVisibility,
+    developmentsSummary: state.developmentsSummary,
     metadata: state.metadata,
     currentBuildName: state.currentBuildName,
   })
@@ -377,6 +400,7 @@ export const useMainStore = create<MainStore>()(
       councillorSlots: initialCouncillorSlotsState,
       operationSlots: initialOperationSlotsState,
       panelVisibility: initialPanelVisibility,
+      developmentsSummary: initialDevelopmentsSummary,
       metadata: createEmptyMetadata(),
       defaultAuthor: DEFAULT_AUTHOR,
       currentBuildName: INITIAL_BUILD_NAME,
@@ -406,6 +430,11 @@ export const useMainStore = create<MainStore>()(
       toggleOperations: () => {
         const { panelVisibility } = get()
         set({ panelVisibility: { ...panelVisibility, operationsOpen: !panelVisibility.operationsOpen } })
+        get().saveCurrentBuild()
+      },
+      toggleDevelopments: () => {
+        const { panelVisibility } = get()
+        set({ panelVisibility: { ...panelVisibility, developmentsOpen: !panelVisibility.developmentsOpen } })
         get().saveCurrentBuild()
       },
       setOperationSlot: (slotIndex, missionId) => {
@@ -642,6 +671,7 @@ export const useMainStore = create<MainStore>()(
           councillorSlots,
           operationSlots,
           panelVisibility,
+          developmentsSummary,
           metadata,
           savedBuilds,
           currentBuildName,
@@ -665,6 +695,7 @@ export const useMainStore = create<MainStore>()(
           councillorSlots,
           operationSlots,
           panelVisibility,
+          developmentsSummary,
           metadata,
           currentBuildName: finalName,
         })
@@ -682,6 +713,7 @@ export const useMainStore = create<MainStore>()(
             councillorSlots: deepClone(councillorSlots),
             operationSlots: deepClone(operationSlots),
             panelVisibility: deepClone(panelVisibility),
+            developmentsSummary: deepClone(developmentsSummary),
             metadata: deepClone(metadata),
             // Keep original createdAt - don't update on save
           }
@@ -706,6 +738,7 @@ export const useMainStore = create<MainStore>()(
             councillorSlots: deepClone(councillorSlots),
             operationSlots: deepClone(operationSlots),
             panelVisibility: deepClone(panelVisibility),
+            developmentsSummary: deepClone(developmentsSummary),
             metadata: deepClone(metadata),
           }
           set({
@@ -726,6 +759,7 @@ export const useMainStore = create<MainStore>()(
         const councillorSlots = build.councillorSlots || initialCouncillorSlotsState
         const operationSlots = build.operationSlots ?? initialOperationSlotsState
         const panelVisibility = normalizePanelVisibility(build.panelVisibility)
+        const developmentsSummary = (build as SavedBuild & { developmentsSummary?: DevelopmentsSummary }).developmentsSummary ?? initialDevelopmentsSummary
         const metadata = normalizeMetadata(build.metadata, defaultAuthor)
         const snapshot = getBuildSnapshot({
           selectedFaction: build.selectedFaction,
@@ -737,6 +771,7 @@ export const useMainStore = create<MainStore>()(
           councillorSlots,
           operationSlots,
           panelVisibility,
+          developmentsSummary,
           metadata,
           currentBuildName: build.name,
         })
@@ -750,6 +785,7 @@ export const useMainStore = create<MainStore>()(
           councillorSlots: deepClone(councillorSlots),
           operationSlots: deepClone(operationSlots),
           panelVisibility,
+          developmentsSummary: deepClone(developmentsSummary),
           metadata: deepClone(metadata),
           currentBuildName: build.name,
           currentBuildId: id,
@@ -766,6 +802,7 @@ export const useMainStore = create<MainStore>()(
         const councillorSlots = build.councillorSlots || initialCouncillorSlotsState
         const operationSlots = build.operationSlots ?? initialOperationSlotsState
         const panelVisibility = normalizePanelVisibility(build.panelVisibility)
+        const developmentsSummary = (build as SavedBuild & { developmentsSummary?: DevelopmentsSummary }).developmentsSummary ?? initialDevelopmentsSummary
         const metadata = normalizeMetadata(build.metadata, defaultAuthor)
         const newName = getUniqueBuildName(build.name + " (copy)", savedBuilds)
         const newId = generateBuildId()
@@ -782,6 +819,7 @@ export const useMainStore = create<MainStore>()(
           councillorSlots: deepClone(councillorSlots),
           operationSlots: deepClone(operationSlots),
           panelVisibility,
+          developmentsSummary: deepClone(developmentsSummary),
           metadata: deepClone(metadata),
         }
         const snapshot = getBuildSnapshot({
@@ -794,6 +832,7 @@ export const useMainStore = create<MainStore>()(
           councillorSlots: duplicated.councillorSlots,
           operationSlots: duplicated.operationSlots,
           panelVisibility: duplicated.panelVisibility,
+          developmentsSummary: duplicated.developmentsSummary,
           metadata: duplicated.metadata,
           currentBuildName: duplicated.name,
         })
@@ -808,6 +847,7 @@ export const useMainStore = create<MainStore>()(
           councillorSlots: deepClone(duplicated.councillorSlots),
           operationSlots: deepClone(duplicated.operationSlots),
           panelVisibility: duplicated.panelVisibility,
+          developmentsSummary: deepClone(duplicated.developmentsSummary),
           metadata: deepClone(duplicated.metadata),
           currentBuildName: duplicated.name,
           currentBuildId: newId,
@@ -830,6 +870,7 @@ export const useMainStore = create<MainStore>()(
             councillorSlots: initialCouncillorSlotsState,
             operationSlots: initialOperationSlotsState,
             panelVisibility: initialPanelVisibility,
+            developmentsSummary: initialDevelopmentsSummary,
             metadata: createEmptyMetadata(defaultAuthor),
             currentBuildName: getDefaultBuildName("atreides", newSaved),
             currentBuildId: null,
@@ -852,6 +893,7 @@ export const useMainStore = create<MainStore>()(
           councillorSlots: initialCouncillorSlotsState,
           operationSlots: initialOperationSlotsState,
           panelVisibility: initialPanelVisibility,
+          developmentsSummary: initialDevelopmentsSummary,
           metadata: createEmptyMetadata(defaultAuthor),
           currentBuildName: getDefaultBuildName("atreides", savedBuilds),
           currentBuildId: null,
@@ -869,6 +911,7 @@ export const useMainStore = create<MainStore>()(
           councillorSlots: initialCouncillorSlotsState,
           operationSlots: initialOperationSlotsState,
           panelVisibility: initialPanelVisibility,
+          developmentsSummary: initialDevelopmentsSummary,
           metadata: createEmptyMetadata(defaultAuthor),
           currentBuildName: getDefaultBuildName(selectedFaction, savedBuilds),
           currentBuildId: null,
@@ -902,6 +945,7 @@ export const useMainStore = create<MainStore>()(
             operationSlots: g.operationSlots,
             councillorSlots: g.councillorSlots,
             panelVisibility: g.panelVisibility,
+            developmentsSummary: g.developmentsSummary,
             metadata: g.metadata,
             currentBuildName: trimmed,
           })
@@ -985,8 +1029,18 @@ export const useMainStore = create<MainStore>()(
         if (!migrated.operationSlots) {
           migrated.operationSlots = initialOperationSlotsState
         }
-        // Migrate panelVisibility if missing or strip metadataOpen
+        // Migrate panelVisibility if missing or add knowledgeOpen
         migrated.panelVisibility = normalizePanelVisibility(migrated.panelVisibility as Partial<PanelVisibility> | undefined)
+        // Migrate developmentsSummary if missing (or from old key knowledgeSummary)
+        const oldKnowledge = (migrated as Record<string, unknown>).knowledgeSummary
+        if (migrated.developmentsSummary) {
+          // already have new key
+        } else if (oldKnowledge && typeof oldKnowledge === "object" && "economic" in oldKnowledge) {
+          migrated.developmentsSummary = oldKnowledge as DevelopmentsSummary
+          delete (migrated as Record<string, unknown>).knowledgeSummary
+        } else {
+          migrated.developmentsSummary = initialDevelopmentsSummary
+        }
         // Migrate metadata if missing or add media
         migrated.metadata = normalizeMetadata(migrated.metadata as BuildMetadata | undefined, defaultAuthor)
         // Migrate defaultAuthor if missing
@@ -1065,6 +1119,11 @@ export const useMainStore = create<MainStore>()(
             }
             delete updated.unitsOrder
             updated.panelVisibility = normalizePanelVisibility((b as { panelVisibility?: Partial<PanelVisibility> }).panelVisibility)
+            const bDev = (b as Record<string, unknown>).developmentsSummary ?? (b as Record<string, unknown>).knowledgeSummary
+            updated.developmentsSummary =
+              bDev && typeof bDev === "object" && "economic" in bDev
+                ? (bDev as DevelopmentsSummary)
+                : initialDevelopmentsSummary
             updated.metadata = normalizeMetadata((b as { metadata?: BuildMetadata }).metadata, defaultAuthor)
             return updated
           })
@@ -1138,6 +1197,7 @@ export function useIsBuildUpToDate(): boolean {
   const councillorSlots = useMainStore((s) => s.councillorSlots)
   const operationSlots = useMainStore((s) => s.operationSlots)
   const panelVisibility = useMainStore((s) => s.panelVisibility)
+  const developmentsSummary = useMainStore((s) => s.developmentsSummary)
   const metadata = useMainStore((s) => s.metadata)
   const currentBuildName = useMainStore((s) => s.currentBuildName)
   const currentSnapshot = getBuildSnapshot({
@@ -1150,6 +1210,7 @@ export function useIsBuildUpToDate(): boolean {
     councillorSlots,
     operationSlots,
     panelVisibility,
+    developmentsSummary,
     metadata,
     currentBuildName,
   })

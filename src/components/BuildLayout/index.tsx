@@ -6,6 +6,7 @@ interface BuildLayoutProps {
   mainBase?: ReactNode
   units?: ReactNode
   councillors?: ReactNode
+  developments?: ReactNode
   armory?: ReactNode
   operations?: ReactNode
 }
@@ -13,11 +14,12 @@ interface BuildLayoutProps {
 /**
  * Layout container for the build tiles.
  * - Top row: Councillors | MainBase | Units | Armory (side by side)
+ * Left column: Councillors on top, Developments below (when visible).
  * Main Base keeps definitive proportions (does not fill width when other panels are off).
  * Width adapts to faction layout (e.g. Harkonnen needs more for [3,2] row).
  */
-const BuildLayout = ({ mainBase, units, councillors, armory, operations }: BuildLayoutProps) => {
-  const hasTopRow = mainBase || units || councillors || armory || operations
+const BuildLayout = ({ mainBase, units, councillors, developments, armory, operations }: BuildLayoutProps) => {
+  const hasTopRow = mainBase || units || councillors || developments || armory || operations
   const selectedFaction = useMainStore((s) => s.selectedFaction)
 
   const mainBaseWidth = useMemo(() => {
@@ -30,9 +32,10 @@ const BuildLayout = ({ mainBase, units, councillors, armory, operations }: Build
     <div className="flex flex-col gap-6">
       {hasTopRow && (
         <div className="flex gap-6 items-start">
-          {councillors && (
-            <div className="shrink-0 flex flex-col">
+          {(councillors || developments) && (
+            <div className="shrink-0 flex flex-col gap-6">
               {councillors}
+              {developments}
             </div>
           )}
           <div className="shrink-0 flex flex-col gap-6" style={{ width: mainBaseWidth }}>
