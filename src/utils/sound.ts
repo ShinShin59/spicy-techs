@@ -87,3 +87,25 @@ export const BUTTON_SPENDRESOURCES_SOUNDS = [
   "Button_Spendresources_3.mp3",
   "Button_Spendresources_4.mp3",
 ]
+
+/** Developments picker: random open sound when opening the modal. */
+const BUTTON_DEVELOPMENTS_OPEN_SOUNDS = [
+  "Button_Developments_Open_6.mp3",
+  "Button_Developments_Open_8.mp3",
+  "Button_Developments_Open_11.mp3",
+]
+
+/** Developments picker: random close sound when closing the modal. */
+const BUTTON_DEVELOPMENTS_CLOSE_SOUNDS = [
+  "Button_Developments_Close.mp3",
+  "Button_Developments_Close_2.mp3",
+  "Button_Developments_Close_3.mp3",
+]
+
+export function playDevelopmentsOpenSound(): void {
+  playRandomSound(BUTTON_DEVELOPMENTS_OPEN_SOUNDS)
+}
+
+export function playDevelopmentsCloseSound(): void {
+  playRandomSound(BUTTON_DEVELOPMENTS_CLOSE_SOUNDS)
+}

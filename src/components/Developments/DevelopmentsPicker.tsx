@@ -5,11 +5,10 @@ import DevelopmentDetailTooltip, {
   type DevelopmentEntry,
   type DevelopmentDomain,
 } from "./DevelopmentDetailTooltip"
-import OrderBadge from "@/components/OrderBadge"
 import PanelCorners from "@/components/PanelCorners"
 import developmentsData from "./developments.json"
 
-const NODE_SIZE = 64
+const NODE_SIZE = 52
 
 const DOMAIN_ORDER: DevelopmentDomain[] = ["economic", "military", "statecraft", "green"]
 
@@ -72,7 +71,6 @@ export default function DevelopmentsPicker({ open, onClose }: DevelopmentsPicker
   const modalRef = useRef<HTMLDivElement>(null)
   const selectedDevelopments = useMainStore((s) => s.selectedDevelopments)
   const setSelectedDevelopments = useMainStore((s) => s.setSelectedDevelopments)
-  const reorderDevelopment = useMainStore((s) => s.reorderDevelopment)
   const selectedFaction = useMainStore((s) => s.selectedFaction)
 
   const [hoverTooltip, setHoverTooltip] = useState<{
@@ -104,6 +102,16 @@ export default function DevelopmentsPicker({ open, onClose }: DevelopmentsPicker
 
   const selectedSet = useMemo(() => new Set(selectedDevelopments), [selectedDevelopments])
 
+  /** Selected ids + ids that are replaced by a selected development (so "Foot In the Door" satisfies "IntelligenceNetwork" for prerequisites) */
+  const satisfiedPrereqIds = useMemo(() => {
+    const set = new Set(selectedDevelopments)
+    selectedDevelopments.forEach((id) => {
+      const dev = idToDev.get(id)
+      if (dev?.replaces) set.add(dev.replaces)
+    })
+    return set
+  }, [selectedDevelopments])
+
   const getOrderNumber = useCallback(
     (id: string): number | null => {
       const i = selectedDevelopments.indexOf(id)
@@ -115,9 +123,9 @@ export default function DevelopmentsPicker({ open, onClose }: DevelopmentsPicker
   const isAvailable = useCallback(
     (d: DevelopmentEntry): boolean => {
       const req = getEffectiveRequires(d)
-      return req == null || selectedSet.has(req)
+      return req == null || satisfiedPrereqIds.has(req)
     },
-    [selectedSet]
+    [satisfiedPrereqIds]
   )
 
   const handleNodeClick = useCallback(
@@ -186,8 +194,6 @@ export default function DevelopmentsPicker({ open, onClose }: DevelopmentsPicker
               isAvailable={isAvailable}
               getOrderNumber={getOrderNumber}
               onNodeClick={handleNodeClick}
-              onReorderIncrement={(id) => reorderDevelopment(id, 1)}
-              onReorderDecrement={(id) => reorderDevelopment(id, -1)}
               onHover={setHoverTooltip}
             />
           ))}
@@ -210,8 +216,6 @@ interface QuadrantProps {
   isAvailable: (d: DevelopmentEntry) => boolean
   getOrderNumber: (id: string) => number | null
   onNodeClick: (d: DevelopmentEntry) => void
-  onReorderIncrement: (id: string) => void
-  onReorderDecrement: (id: string) => void
   onHover: React.Dispatch<React.SetStateAction<{ development: DevelopmentEntry; x: number; y: number } | null>>
 }
 
@@ -222,8 +226,6 @@ function Quadrant({
   isAvailable,
   getOrderNumber,
   onNodeClick,
-  onReorderIncrement,
-  onReorderDecrement,
   onHover,
 }: QuadrantProps) {
   const maxX = useMemo(
@@ -245,7 +247,7 @@ function Quadrant({
   /** Unselected: light dark bg + category border. Selected: category bg. Locked signified by opacity/cursor only. */
   const getNodeClasses = (d: DevelopmentEntry, state: "locked" | "available" | "selected") => {
     const border = DOMAIN_BORDER_CLASS[d.domain]
-    const base = "rounded border-2 p-1 transition-colors flex flex-col items-center justify-start"
+    const base = "rounded border p-0.5 transition-colors flex flex-col items-center justify-start"
     if (state === "selected") {
       return `${base} ${border} ${DOMAIN_BG_SELECTED_CLASS[d.domain]} cursor-pointer text-white`
     }
@@ -255,12 +257,12 @@ function Quadrant({
   }
 
   return (
-    <div className="relative min-h-[180px] overflow-auto bg-zinc-900/80 p-2">
+    <div className="relative min-h-[140px] overflow-auto bg-zinc-900/80 p-2">
       <div
-        className="grid w-full gap-1"
+        className="grid w-full gap-3"
         style={{
           gridTemplateColumns: `repeat(${cols}, minmax(${NODE_SIZE}px, 1fr))`,
-          gridTemplateRows: `repeat(${rows}, auto)`,
+          gridTemplateRows: `repeat(${rows}, minmax(${NODE_SIZE - 8}px, auto))`,
         }}
       >
         {developments.map((d) => {
@@ -286,22 +288,20 @@ function Quadrant({
               }}
               onMouseLeave={() => onHover(null)}
             >
-              <div className="relative flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-sm">
+              <div className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-sm">
                 {spriteStyle && (
                   <div className="h-full w-full shrink-0" style={spriteStyle} />
                 )}
                 {orderNumber !== null && (
-                  <OrderBadge
-                    orderNumber={orderNumber}
-                    onIncrement={() => onReorderIncrement(d.id)}
-                    onDecrement={() => onReorderDecrement(d.id)}
-                  />
+                  <span className="absolute top-0 right-0.5 z-10 text-[10px] font-bold text-white bg-black/60 px-0.5 rounded-sm pointer-events-none">
+                    {orderNumber}
+                  </span>
                 )}
                 {state === "selected" && orderNumber === null && (
-                  <span className="absolute top-0.5 right-1 text-white">✓</span>
+                  <span className="absolute top-0 right-0.5 text-white text-xs">✓</span>
                 )}
               </div>
-              <span className={`mt-0.5 line-clamp-2 text-center text-[10px] leading-tight ${state === "selected" ? "text-white" : "text-zinc-200"}`}>
+              <span className={`mt-0.5 line-clamp-1 text-center text-[9px] leading-tight ${state === "selected" ? "text-white" : "text-zinc-200"}`}>
                 {d.name}
               </span>
             </div>

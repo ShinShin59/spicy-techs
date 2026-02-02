@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { useMainStore } from "@/store"
 import { getDevelopmentsSlotPath } from "@/utils/assetPaths"
+import { playDevelopmentsOpenSound, playDevelopmentsCloseSound } from "@/utils/sound"
 import PanelCorners from "@/components/PanelCorners"
 import DevelopmentsPicker from "./DevelopmentsPicker"
 
@@ -27,7 +28,10 @@ const Developments = () => {
       <button
         type="button"
         id="developments-grid"
-        onClick={() => setPickerOpen(true)}
+        onClick={() => {
+          playDevelopmentsOpenSound()
+          setPickerOpen(true)
+        }}
         className="relative bg-zinc-900 border border-zinc-700 w-[168px] gap-2 p-4 box-border overflow-y-auto min-h-0 grid grid-cols-2 grid-rows-2 cursor-pointer hover:border-zinc-500 transition-colors text-left"
       >
         <PanelCorners />
@@ -47,7 +51,13 @@ const Developments = () => {
         })}
       </button>
       {pickerOpen && (
-        <DevelopmentsPicker open={pickerOpen} onClose={() => setPickerOpen(false)} />
+        <DevelopmentsPicker
+          open={pickerOpen}
+          onClose={() => {
+            playDevelopmentsCloseSound()
+            setPickerOpen(false)
+          }}
+        />
       )}
     </div>
   )
