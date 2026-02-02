@@ -119,16 +119,6 @@ const Units = () => {
   return (
     <>
       <div className="flex flex-col shrink-0">
-        <div className="flex justify-end items-center gap-1 mb-0 shrink-0">
-          <span
-            className={`text-xs font-mono ${cpNumberRed ? "font-bold text-(--color-error)" : totalCP === MAX_UNIT_CP ? "font-bold text-white/70" : "text-white/70"}`}
-          >
-            {totalCP} CP
-          </span>
-          <h2 className="text-xs font-mono font-bold text-white/70 uppercase m-0">
-            Units
-          </h2>
-        </div>
         <div
           id="units-grid"
           className={`relative bg-zinc-900 box-border overflow-hidden p-4 ${PANEL_BORDER_HOVER_CLASS}`}
@@ -226,6 +216,16 @@ const Units = () => {
               remainingCP={selectedSlotIndex === 0 ? MAX_UNIT_CP - totalCP : undefined}
             />
           )}
+        </div>
+        <div className="flex justify-start items-center gap-1 mt-1 shrink-0">
+          <h2 className="text-xs font-mono font-bold text-white/70 uppercase m-0">
+            Units
+          </h2>
+          <span
+            className={`text-xs font-mono ${cpNumberRed ? "font-bold text-(--color-error)" : totalCP === MAX_UNIT_CP ? "font-bold text-white/70" : "text-white/70"}`}
+          >
+            {totalCP} CP
+          </span>
         </div>
       </div>
 

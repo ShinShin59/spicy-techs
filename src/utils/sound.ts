@@ -1,5 +1,22 @@
 const SOUNDS_PATH = "/sounds"
 
+/** Background music: single instance, looped, lower volume. */
+const BACKGROUND_PATH = "/sounds/background.mp3"
+let backgroundAudio: HTMLAudioElement | null = null
+
+/**
+ * Start background music (loops). Call on app load or after first user interaction.
+ * Returns a promise that resolves when play() succeeds or rejects if autoplay is blocked.
+ */
+export function startBackgroundMusic(): Promise<void> {
+  if (!backgroundAudio) {
+    backgroundAudio = new Audio(BACKGROUND_PATH)
+    backgroundAudio.loop = true
+    backgroundAudio.volume = 0.2
+  }
+  return backgroundAudio.play()
+}
+
 /**
  * Get the full path for a sound file (filename with or without .mp3).
  */

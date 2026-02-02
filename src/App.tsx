@@ -13,6 +13,7 @@ import BuildsSidebar from "./components/BuildsSidebar"
 import Metadata from "./components/Metadata"
 import { useMainStore } from "./store"
 import { decodeBuildPayload } from "./utils/mainBaseShare"
+import { startBackgroundMusic } from "./utils/sound"
 import "./utils/assetPaths"
 
 function App() {
@@ -25,6 +26,18 @@ function App() {
     if (payload) {
       useMainStore.getState().loadSharedBuild(payload)
     }
+  }, [])
+
+  useEffect(() => {
+    startBackgroundMusic().catch(() => {
+      const startOnInteraction = () => {
+        startBackgroundMusic().catch(() => { })
+        document.removeEventListener("click", startOnInteraction)
+        document.removeEventListener("keydown", startOnInteraction)
+      }
+      document.addEventListener("click", startOnInteraction, { once: true })
+      document.addEventListener("keydown", startOnInteraction, { once: true })
+    })
   }, [])
 
   return (

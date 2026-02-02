@@ -9,6 +9,7 @@ import DevelopmentDetailTooltip, {
 import PanelCorners from "@/components/PanelCorners"
 import OrderBadge from "@/components/OrderBadge"
 import developmentsData from "./developments.json"
+import CROSS_IMAGE from "/images/hud/developments/cross_section.png"
 
 /** Single source of truth for development node scale (px). All layout dimensions are derived from this. */
 const DEV_SCALE = 56
@@ -247,15 +248,15 @@ export default function DevelopmentsPicker({ open, onClose }: DevelopmentsPicker
       <div className="fixed inset-0 z-40 bg-black/70" aria-hidden />
       <div
         ref={modalRef}
-        className="fixed left-1/2 top-1/2 z-50 flex max-h-[90vh] w-[95vw] max-w-6xl bg-zinc-950 -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded border border-zinc-700 shadow-2xl p-6"
+        className="fixed left-1/2 top-1/2 z-50 flex max-h-[90vh] w-max max-w-[95vw] bg-zinc-950 -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded border border-zinc-700 shadow-2xl p-6"
       >
+        <img src={CROSS_IMAGE} alt="" className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 scale-50 z-0 object-center" />
         <PanelCorners />
-        <div className="grid flex-1 grid-cols-2 grid-rows-2 bg-zinc-950 gap-6 overflow-auto min-h-0">
-          {DOMAIN_ORDER.map((domain) => (
+        <div className="flex flex-1 flex-col gap-6 overflow-auto min-h-0 bg-zinc-950">
+          <div className="flex gap-6">
             <Quadrant
-              key={domain}
-              domain={domain}
-              developments={byDomain[domain]}
+              domain="economic"
+              developments={byDomain.economic}
               selectedSet={selectedSet}
               lastSelectedId={selectedDevelopments[selectedDevelopments.length - 1] ?? null}
               cannotDeselectIds={cannotDeselectIds}
@@ -265,7 +266,45 @@ export default function DevelopmentsPicker({ open, onClose }: DevelopmentsPicker
               onDeselect={handleDeselect}
               onHover={setHoverTooltip}
             />
-          ))}
+            <Quadrant
+              domain="military"
+              developments={byDomain.military}
+              selectedSet={selectedSet}
+              lastSelectedId={selectedDevelopments[selectedDevelopments.length - 1] ?? null}
+              cannotDeselectIds={cannotDeselectIds}
+              isAvailable={isAvailable}
+              getOrderNumber={getOrderNumber}
+              onSelect={handleSelect}
+              onDeselect={handleDeselect}
+              onHover={setHoverTooltip}
+            />
+          </div>
+          <div className="flex gap-6">
+            <Quadrant
+              domain="statecraft"
+              developments={byDomain.statecraft}
+              selectedSet={selectedSet}
+              lastSelectedId={selectedDevelopments[selectedDevelopments.length - 1] ?? null}
+              cannotDeselectIds={cannotDeselectIds}
+              isAvailable={isAvailable}
+              getOrderNumber={getOrderNumber}
+              onSelect={handleSelect}
+              onDeselect={handleDeselect}
+              onHover={setHoverTooltip}
+            />
+            <Quadrant
+              domain="green"
+              developments={byDomain.green}
+              selectedSet={selectedSet}
+              lastSelectedId={selectedDevelopments[selectedDevelopments.length - 1] ?? null}
+              cannotDeselectIds={cannotDeselectIds}
+              isAvailable={isAvailable}
+              getOrderNumber={getOrderNumber}
+              onSelect={handleSelect}
+              onDeselect={handleDeselect}
+              onHover={setHoverTooltip}
+            />
+          </div>
         </div>
       </div>
       {hoverTooltip && (
@@ -313,6 +352,9 @@ function Quadrant({
   )
   const cols = maxX + 1
   const rows = maxY + 1
+  /** Grid content width so we don't stretch with w-full; lets quadrant padding create space on the right */
+  const gridContentWidth =
+    cols * DEV_LAYOUT.nodeWidth + (cols - 1) * DEV_LAYOUT.gapX
 
   const nodeState = (d: DevelopmentEntry): "locked" | "available" | "selected" => {
     if (selectedSet.has(d.id)) return "selected"
@@ -339,16 +381,17 @@ function Quadrant({
   const quadrantBg = getDevelopmentPickerAssetPath(QUADRANT_BG_FILES[domain])
 
   return (
-    <div className="relative min-h-[140px] overflow-auto bg-zinc-900/80 p-5">
+    <div className="relative w-max min-w-0 min-h-[140px] overflow-auto bg-zinc-900/80 pl-5 pr-8 pt-5 pb-5 border border-transparent rounded-lg">
       {/* Domain grid background as filigree at 50% opacity */}
       <div
-        className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat opacity-10"
+        className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat opacity-10 border border-transparent rounded-lg"
         style={{ backgroundImage: `url(${quadrantBg})` }}
         aria-hidden
       />
       <div
-        className="relative z-10 grid w-full"
+        className="relative z-10 grid"
         style={{
+          width: gridContentWidth,
           gridTemplateColumns: `repeat(${cols}, ${DEV_LAYOUT.nodeWidth}px)`,
           gridTemplateRows: `repeat(${rows}, ${DEV_LAYOUT.nodeHeight}px)`,
           gap: `${DEV_LAYOUT.gapY}px ${DEV_LAYOUT.gapX}px`,
