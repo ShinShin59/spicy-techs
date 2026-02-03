@@ -2,6 +2,17 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.tsx'
+import { getBuildStateObject } from './store'
+
+function logBuildDebug() {
+  const state = getBuildStateObject()
+  console.log("[spicy-techs] build state:", JSON.stringify(state, null, 2))
+}
+
+if (typeof window !== "undefined") {
+  ; (window as Window & { __spicyTechsLogBuild?: () => void }).__spicyTechsLogBuild = logBuildDebug
+    ; (window as Window & { debug?: () => void }).debug = logBuildDebug
+}
 
 const base = import.meta.env.BASE_URL
 document.documentElement.style.setProperty("--cursor-default", `url("${base}images/hud/cursor_default.png")`)

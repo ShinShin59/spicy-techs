@@ -329,6 +329,26 @@ export function getBuildSnapshot(state: {
   })
 }
 
+/** Current build state as a plain object (for debug / share payload). */
+export function getBuildStateObject() {
+  const s = useMainStore.getState()
+  return {
+    selectedFaction: s.selectedFaction,
+    mainBaseState: s.mainBaseState,
+    buildingOrder: s.buildingOrder,
+    armoryState: s.armoryState,
+    unitSlotCount: s.unitSlotCount,
+    unitSlots: s.unitSlots,
+    councillorSlots: s.councillorSlots,
+    operationSlots: s.operationSlots,
+    panelVisibility: s.panelVisibility,
+    developmentsSummary: s.developmentsSummary,
+    selectedDevelopments: s.selectedDevelopments,
+    metadata: s.metadata,
+    currentBuildName: s.currentBuildName,
+  }
+}
+
 /** Default build name: "faction N" with N = next number for that faction */
 export function getDefaultBuildName(
   faction: FactionLabel,
@@ -401,6 +421,9 @@ export const useMainStore = create<MainStore>()(
           currentBuildId: null,
           currentBuildName: getDefaultBuildName(faction, get().savedBuilds),
         })
+        if (typeof window !== "undefined" && (window as { __spicyTechsLogBuild?: () => void }).__spicyTechsLogBuild) {
+          (window as { __spicyTechsLogBuild: () => void }).__spicyTechsLogBuild()
+        }
       },
       mainBaseState: mainBasesState,
       buildingOrder: initialBuildingOrder,
