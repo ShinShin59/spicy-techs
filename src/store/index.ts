@@ -133,6 +133,9 @@ function normalizeBuildingOrderFromBuild(
   return result as MainStoreBuildingOrder
 }
 
+/** Stable empty array for building order; avoid returning new [] from getBuildingOrderSlice to prevent infinite re-renders. */
+const EMPTY_BUILDING_ORDER: BuildingCoords[] = []
+
 /** Resolve the single main-base state for a faction (current base when tuple). */
 function getMainBaseStateSlice(
   state: MainBaseStatePerFaction,
@@ -149,8 +152,12 @@ function getBuildingOrderSlice(
   baseIndex: 0 | 1
 ): BuildingCoords[] {
   const isTuple = Array.isArray(order) && order.length === 2
-  if (isTuple) return (order as [BuildingCoords[], BuildingCoords[]])[baseIndex]
-  return (order ?? []) as BuildingCoords[]
+  if (isTuple) {
+    const slice = (order as [BuildingCoords[], BuildingCoords[]])[baseIndex]
+    return Array.isArray(slice) ? slice : EMPTY_BUILDING_ORDER
+  }
+  const single = order ?? []
+  return (Array.isArray(single) ? single : EMPTY_BUILDING_ORDER) as BuildingCoords[]
 }
 
 interface MainStore {
@@ -949,6 +956,9 @@ export const useMainStore = create<MainStore>()(
         merge: (persisted, current) => {
           const p = persisted as Partial<MainStore> & Pick<MainStore, "currentBuildId" | "currentBuildName">
           const merged = { ...current, ...p }
+          // Normalize mainBaseState and buildingOrder so old/corrupted persisted data never causes findIndex crashes
+          if (p.mainBaseState != null) merged.mainBaseState = normalizeMainBaseStateFromBuild(p.mainBaseState)
+          if (p.buildingOrder != null) merged.buildingOrder = normalizeBuildingOrderFromBuild(p.buildingOrder)
           merged.lastSavedSnapshot =
             p.currentBuildId != null && p.mainBaseState != null
               ? getBuildSnapshot({
@@ -1028,6 +1038,7 @@ export function getBuildingOrderNumber(
   groupIndex: number,
   cellIndex: number
 ): number | null {
+  if (!Array.isArray(order)) return null
   const index = order.findIndex(
     (coord) => coord.rowIndex === rowIndex && coord.groupIndex === groupIndex && coord.cellIndex === cellIndex
   )

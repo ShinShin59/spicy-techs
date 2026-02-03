@@ -75,7 +75,8 @@ const MainBase = () => {
     const buildingName = mainBaseState[rowIndex]?.[groupIndex]?.[cellIndex]
     const buildingData = getBuildingByName(buildingName)
     const hasBuilding = buildingName !== null && buildingData !== undefined
-    const groupState = mainBaseState[rowIndex]?.[groupIndex] ?? []
+    const rawGroup = mainBaseState[rowIndex]?.[groupIndex]
+    const groupState = Array.isArray(rawGroup) ? rawGroup : []
     const emptyCount = groupState.filter((v) => v === null).length
     const firstEmptyIndex = groupState.findIndex((v) => v === null)
     const slotTypeForCell: SlotType =
@@ -189,7 +190,8 @@ const MainBase = () => {
                       const hasBuilding = buildingName !== null && buildingData !== undefined
                       const orderNumber = getBuildingOrderNumber(buildingOrder, rowIndex, groupIndex, cellIndex)
 
-                      const groupState = mainBaseState[rowIndex]?.[groupIndex] ?? []
+                      const rawGroup = mainBaseState[rowIndex]?.[groupIndex]
+                      const groupState = Array.isArray(rawGroup) ? rawGroup : []
                       const emptyCount = groupState.filter((v) => v === null).length
                       const firstEmptyIndex = groupState.findIndex((v) => v === null)
 
