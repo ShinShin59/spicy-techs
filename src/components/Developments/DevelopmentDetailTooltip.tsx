@@ -1,5 +1,6 @@
 import { createPortal } from "react-dom"
 import TooltipWrapper from "@/components/shared/TooltipWrapper"
+import { TIME_ICON_PATH } from "@/utils/assetPaths"
 
 export type DevelopmentDomain = "economic" | "military" | "statecraft" | "green"
 
@@ -35,12 +36,16 @@ const domainColor: Record<DevelopmentDomain, string> = {
 
 const CURSOR_OFFSET = 12
 
+const DEFAULT_KNOWLEDGE_PER_DAY = 5
+
 export interface DevelopmentDetailTooltipProps {
   development: DevelopmentEntry
   /** When set, tooltip follows cursor at (x + offset, y + offset) */
   followCursor?: { x: number; y: number }
   /** When followCursor is not set, position relative to this rect */
   anchorRect?: { left: number; top: number; width: number; height: number }
+  /** Research cost in Knowledge (current build order or "if researched next"). When set, shows ~days. */
+  costKnowledge?: number
 }
 
 type Segment = { type: "bracket" | "value" | "normal"; text: string }
@@ -129,13 +134,35 @@ function AttributeLine({ line }: { line: string }) {
 const tooltipContentClass =
   "z-[9999] max-w-[320px] bg-zinc-900/95 backdrop-blur-md border border-zinc-600 shadow-lg pointer-events-none overflow-hidden"
 
-function TooltipContent({ development }: { development: DevelopmentEntry }) {
+interface TooltipContentProps {
+  development: DevelopmentEntry
+  costKnowledge?: number
+}
+
+function TooltipContent({ development, costKnowledge }: TooltipContentProps) {
   const categoryLabel = DOMAIN_LABELS[development.domain]
   const colorClass = domainColor[development.domain]
+  const costDays =
+    costKnowledge != null
+      ? Math.round(costKnowledge / DEFAULT_KNOWLEDGE_PER_DAY)
+      : undefined
   return (
     <>
       <div className="px-3 py-2 border-b border-zinc-700/80 bg-zinc-800/90">
-        <div className="text-zinc-100 font-semibold text-sm">{development.name}</div>
+        <div className="flex items-center gap-2">
+          <span className="text-zinc-100 font-semibold text-sm min-w-0 flex-1">{development.name}</span>
+          {costDays != null && (
+            <div
+              className="relative w-6 h-6 shrink-0 bg-contain bg-center bg-no-repeat"
+              style={{ backgroundImage: `url(${TIME_ICON_PATH})` }}
+              aria-hidden
+            >
+              <span className="absolute inset-0 flex items-center justify-center text-zinc-300 text-[10px] font-medium tabular-nums">
+                {costDays}
+              </span>
+            </div>
+          )}
+        </div>
         <div className={`text-xs ${colorClass}`}>{categoryLabel}</div>
       </div>
       {development.attributes && development.attributes.length > 0 ? (
@@ -162,7 +189,9 @@ export default function DevelopmentDetailTooltip({
   development,
   followCursor,
   anchorRect,
+  costKnowledge,
 }: DevelopmentDetailTooltipProps) {
+  const costProps = { costKnowledge }
   if (followCursor) {
     return createPortal(
       <div
@@ -173,7 +202,7 @@ export default function DevelopmentDetailTooltip({
           top: followCursor.y + CURSOR_OFFSET,
         }}
       >
-        <TooltipContent development={development} />
+        <TooltipContent development={development} {...costProps} />
       </div>,
       document.body
     )
@@ -182,7 +211,7 @@ export default function DevelopmentDetailTooltip({
   if (anchorRect) {
     return (
       <TooltipWrapper anchorRect={anchorRect} className="border-zinc-600" maxWidth={320}>
-        <TooltipContent development={development} />
+        <TooltipContent development={development} {...costProps} />
       </TooltipWrapper>
     )
   }

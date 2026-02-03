@@ -1,11 +1,14 @@
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { useMainStore } from "@/store"
 import { getDevelopmentsSlotPath } from "@/utils/assetPaths"
 import { playDevelopmentsOpenSound, playDevelopmentsCloseSound } from "@/utils/sound"
+import { totalCostOfOrder, costToDays, DEFAULT_KNOWLEDGE_PER_DAY, formatDaysAsMonthsAndDays } from "@/utils/techCost"
+import type { DevWithTier } from "@/utils/techCost"
 import PanelCorners from "@/components/PanelCorners"
 import { PANEL_BORDER_HOVER_CLASS } from "@/components/shared/panelBorderHover"
 import { usePanelHideOnRightClick } from "@/hooks/usePanelHideOnRightClick"
 import DevelopmentsPicker from "./DevelopmentsPicker"
+import developmentsData from "./developments.json"
 
 const cellClass =
   "w-[64px] h-[64px] flex items-center justify-center overflow-hidden border border-zinc-700 text-white text-sm font-medium bg-cover bg-center"
@@ -18,12 +21,24 @@ const GRID_ORDER: (keyof import("@/store").DevelopmentsSummary)[] = [
   "green",
 ]
 
+const idToDev = new Map<string, DevWithTier>(
+  (developmentsData as { id: string; tier: number }[]).map((d) => [d.id, d])
+)
+
 const Developments = () => {
   const developmentsSummary = useMainStore((s) => s.developmentsSummary)
+  const selectedDevelopments = useMainStore((s) => s.selectedDevelopments)
   const [pickerOpen, setPickerOpen] = useState(false)
   const toggleDevelopments = useMainStore((s) => s.toggleDevelopments)
   const developmentsOpen = useMainStore((s) => s.panelVisibility.developmentsOpen)
   const panelRightClickHide = usePanelHideOnRightClick(toggleDevelopments, developmentsOpen)
+
+  const totalCostAndDays = useMemo(() => {
+    if (selectedDevelopments.length === 0) return null
+    const cost = totalCostOfOrder(selectedDevelopments, idToDev)
+    const days = Math.round(costToDays(cost, DEFAULT_KNOWLEDGE_PER_DAY))
+    return { cost, days }
+  }, [selectedDevelopments])
 
   return (
     <div className="flex flex-col">
@@ -57,6 +72,13 @@ const Developments = () => {
           )
         })}
       </button>
+      {totalCostAndDays && (
+        <div className="flex justify-center pt-2">
+          <span className="text-xs text-zinc-500 tabular-nums">
+            {formatDaysAsMonthsAndDays(totalCostAndDays.days)}
+          </span>
+        </div>
+      )}
       {pickerOpen && (
         <DevelopmentsPicker
           open={pickerOpen}

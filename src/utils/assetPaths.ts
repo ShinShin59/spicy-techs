@@ -15,6 +15,9 @@ const UNIT_ICONS_PATH = `${BASE}images/units`
 const COUNCILLOR_ICONS_PATH = `${BASE}images/councillors`
 const OPERATIONS_ICONS_PATH = `${BASE}images/operations`
 
+/** Time/days icon for development cost display */
+export const TIME_ICON_PATH = `${BASE}images/time-icon.png`
+
 export function getFactionIconPath(faction: FactionLabel): string {
   return `${FACTION_ICON_PATH}/${faction}.png`
 }

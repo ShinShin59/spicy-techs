@@ -6,6 +6,7 @@ import DevelopmentDetailTooltip, {
   type DevelopmentEntry,
   type DevelopmentDomain,
 } from "./DevelopmentDetailTooltip"
+import { costToResearchNext } from "@/utils/techCost"
 import PanelCorners from "@/components/PanelCorners"
 import OrderBadge from "@/components/OrderBadge"
 import developmentsData from "./developments.json"
@@ -195,6 +196,17 @@ export default function DevelopmentsPicker({ open, onClose }: DevelopmentsPicker
     [selectedDevelopments]
   )
 
+  /** Cost in Knowledge for a dev: at its position in selection, or if added next. */
+  const getCostForTooltip = useCallback(
+    (d: DevelopmentEntry): { costKnowledge: number } => {
+      const idx = selectedDevelopments.indexOf(d.id)
+      const alreadyResearched = idx >= 0 ? selectedDevelopments.slice(0, idx) : selectedDevelopments
+      const costKnowledge = costToResearchNext(d, alreadyResearched, idToDev)
+      return { costKnowledge }
+    },
+    [selectedDevelopments]
+  )
+
   const isAvailable = useCallback(
     (d: DevelopmentEntry): boolean => {
       const req = getEffectiveRequires(d)
@@ -312,6 +324,7 @@ export default function DevelopmentsPicker({ open, onClose }: DevelopmentsPicker
         <DevelopmentDetailTooltip
           development={hoverTooltip.development}
           followCursor={{ x: hoverTooltip.x, y: hoverTooltip.y }}
+          {...getCostForTooltip(hoverTooltip.development)}
         />
       )}
     </>
