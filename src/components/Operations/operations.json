@@ -291,10 +291,10 @@
     "gfx": {
       "file": "UI/spying/missionIconsBW.png",
       "size": 114,
-      "x": 35,
+      "x": 36,
       "y": 0
     },
-    "image": "operation_35.png",
+    "image": "operation_36.png",
     "props": {
       "tip": {
         "cat": "Mission"
@@ -707,10 +707,10 @@
     "gfx": {
       "file": "UI/spying/missionIconsBW.png",
       "size": 114,
-      "x": 44,
+      "x": 43,
       "y": 0
     },
-    "image": "operation_44.png",
+    "image": "operation_43.png",
     "props": {
       "tip": {
         "cat": "Mission"
@@ -913,88 +913,6 @@
     },
     "name": "Hidden Backdoor",
     "desc": "A tiny security default, hidden deep within the mechanical engineering of any machine built by the House, can be activated at any moment to take control. There shall be no witness to such an event left alive, for it would ruin Ix reputation."
-  },
-  {
-    "id": "CellSearch",
-    "effects": {
-      "ope": "CellSearch"
-    },
-    "cost": [
-      {
-        "res": "Solari",
-        "qty": 200
-      }
-    ],
-    "gfx": {
-      "file": "UI/spying/missionIconsBW.png",
-      "size": 114,
-      "x": 45,
-      "y": 0
-    },
-    "image": "operation_45.png",
-    "props": {
-      "tip": {
-        "cat": "Mission"
-      }
-    },
-    "name": "Cell Search",
-    "desc": "A cell of assassins is easy to miss, if you don't look for it meticulously."
-  },
-  {
-    "id": "InfiltrationCells",
-    "effects": {
-      "ope": "InfiltrationCells"
-    },
-    "cost": [
-      {
-        "res": "Intel",
-        "qty": 100
-      }
-    ],
-    "gfx": {
-      "file": "UI/spying/missionIconsBW.png",
-      "size": 114,
-      "x": 39,
-      "y": 0
-    },
-    "image": "operation_39.png",
-    "props": {
-      "tip": {
-        "cat": "Mission"
-      }
-    },
-    "name": "Infiltration Cells",
-    "desc": "There is a limit to what you can do from afar. If you really want to know someone, you need to get closer."
-  },
-  {
-    "id": "Assassination",
-    "effects": {
-      "ope": "Assassination"
-    },
-    "cost": [
-      {
-        "res": "Intel",
-        "qty": 500
-      },
-      {
-        "res": "Solari",
-        "qty": 1000
-      }
-    ],
-    "gfx": {
-      "file": "UI/spying/missionIconsBW.png",
-      "size": 114,
-      "x": 17,
-      "y": 0
-    },
-    "image": "operation_17.png",
-    "props": {
-      "tip": {
-        "cat": "Mission"
-      }
-    },
-    "name": "Assassination",
-    "desc": "Murder is such an ugly word, but when someone has become too much of a pain, it can be efficient."
   },
   {
     "id": "MSupplyCaches",

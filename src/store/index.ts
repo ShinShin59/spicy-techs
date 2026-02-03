@@ -24,6 +24,7 @@ import {
   type BuildingOrderStatePerFaction,
   type CurrentBuildId,
   type MainStoreBuildingOrder,
+  FACTION_LABELS,
   MAIN_BASE_VARIANT_FACTIONS,
   MAIN_STORE_PERSIST_KEY,
   HERO_SLOT_INDEX,
@@ -109,7 +110,19 @@ function normalizeMainBaseStateFromBuild(
   return result
 }
 
-/** Normalize loaded buildingOrder: ensure variant factions have [order0, order1]. */
+/** Normalize a single-base faction's order: must be flat BuildingCoords[], not tuple-shaped (fixes old persisted corruption). */
+function ensureSingleBuildingOrder(v: unknown): BuildingCoords[] {
+  if (!Array.isArray(v)) return []
+  // Tuple-shaped (from old bug): [array, array] or [array, coord] or [coord, array] — take the array of coords.
+  if (v.length === 2) {
+    if (Array.isArray(v[0]) && Array.isArray(v[1])) return v[0] as BuildingCoords[]
+    if (Array.isArray(v[0])) return v[0] as BuildingCoords[]
+    if (Array.isArray(v[1])) return v[1] as BuildingCoords[]
+  }
+  return v as BuildingCoords[]
+}
+
+/** Normalize loaded buildingOrder: variant factions get [order0, order1]; single-base factions get flat BuildingCoords[]. */
 function normalizeBuildingOrderFromBuild(
   order: Record<FactionLabel, BuildingOrderStatePerFaction>
 ): MainStoreBuildingOrder {
@@ -129,6 +142,10 @@ function normalizeBuildingOrderFromBuild(
       }
       result[f] = [firstOrder, []]
     }
+  }
+  for (const f of FACTION_LABELS) {
+    if (MAIN_BASE_VARIANT_FACTIONS.includes(f)) continue
+    result[f] = ensureSingleBuildingOrder(result[f]) as BuildingOrderStatePerFaction
   }
   return result as MainStoreBuildingOrder
 }
@@ -151,7 +168,13 @@ function getBuildingOrderSlice(
   order: BuildingOrderStatePerFaction,
   baseIndex: 0 | 1
 ): BuildingCoords[] {
-  const isTuple = Array.isArray(order) && order.length === 2
+  // Tuple is [BuildingCoords[], BuildingCoords[]]; single array is BuildingCoords[].
+  // Don't use order.length === 2 alone: a single array with 2 coords would be misread as a tuple.
+  const isTuple =
+    Array.isArray(order) &&
+    order.length === 2 &&
+    Array.isArray(order[0]) &&
+    Array.isArray(order[1])
   if (isTuple) {
     const slice = (order as [BuildingCoords[], BuildingCoords[]])[baseIndex]
     return Array.isArray(slice) ? slice : EMPTY_BUILDING_ORDER
@@ -461,7 +484,11 @@ export const useMainStore = create<MainStore>()(
               }
               : { ...mainBaseState, [selectedFaction]: newFactionState }
 
-            const orderIsTuple = Array.isArray(factionOrder) && factionOrder.length === 2
+            const orderIsTuple =
+              Array.isArray(factionOrder) &&
+              factionOrder.length === 2 &&
+              Array.isArray(factionOrder[0]) &&
+              Array.isArray(factionOrder[1])
             const nextBuildingOrder = orderIsTuple
               ? {
                 ...buildingOrder,
@@ -486,7 +513,11 @@ export const useMainStore = create<MainStore>()(
             const { selectedFaction, selectedMainBaseIndex, buildingOrder } = get()
             const baseIndex = selectedMainBaseIndex[selectedFaction] ?? 0
             const factionOrder = buildingOrder[selectedFaction]
-            const isTuple = Array.isArray(factionOrder) && factionOrder.length === 2
+            const isTuple =
+              Array.isArray(factionOrder) &&
+              factionOrder.length === 2 &&
+              Array.isArray(factionOrder[0]) &&
+              Array.isArray(factionOrder[1])
             const nextOrder = isTuple
               ? ([baseIndex === 0 ? newOrder : factionOrder[0], baseIndex === 1 ? newOrder : factionOrder[1]] as [BuildingCoords[], BuildingCoords[]])
               : newOrder
