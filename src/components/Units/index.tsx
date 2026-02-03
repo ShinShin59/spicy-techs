@@ -1,8 +1,9 @@
-import { useState } from "react"
-import { useMainStore, useCurrentUnitSlots, HERO_SLOT_INDEX, MAX_UNIT_CP } from "@/store"
+import { useState, useMemo } from "react"
+import { useMainStore, useCurrentUnitSlots, useCurrentArmoryState, HERO_SLOT_INDEX, MAX_UNIT_CP } from "@/store"
 import { getUnitIconPath, getHudImagePath } from "@/utils/assetPaths"
 import { playRandomSound, playCancelSlotSound, BUTTON_SPENDRESOURCES_SOUNDS } from "@/utils/sound"
 import { usePanelTooltip } from "@/hooks/usePanelTooltip"
+import { getEffectiveUnitCpCost } from "@/components/Armory/armory-utils"
 import { getUnitById, getUnitsForFaction, type UnitData } from "./units-utils"
 import { getHeroById, getHeroIconPath, isHeroId } from "./heroes-utils"
 import UnitsSelector from "./UnitsSelector"
@@ -32,6 +33,7 @@ const Units = () => {
   const setUnitSlot = useMainStore((s) => s.setUnitSlot)
   const removeUnitSlot = useMainStore((s) => s.removeUnitSlot)
   const unitSlots = useCurrentUnitSlots()
+  const armoryState = useCurrentArmoryState()
   const toggleUnits = useMainStore((s) => s.toggleUnits)
   const unitsOpen = useMainStore((s) => s.panelVisibility.unitsOpen)
   const panelRightClickHide = usePanelHideOnRightClick(toggleUnits, unitsOpen)
@@ -62,8 +64,7 @@ const Units = () => {
     }
     if (selectedSlotIndex === 0) {
       if (unitId !== null) {
-        const unitData = getUnitById(selectedFaction, unitId)
-        const unitCost = unitData?.cpCost ?? 0
+        const unitCost = getEffectiveUnitCpCost(selectedFaction, unitId, armoryState)
         if (totalCP + unitCost > MAX_UNIT_CP) return
         let placed = false
         for (let k = 2; k < unitSlotCount; k++) {
@@ -93,16 +94,25 @@ const Units = () => {
     setAnchorPosition(null)
   }
 
-  const totalCP = unitSlots.reduce((sum, unitId) => {
-    if (!unitId) return sum
-    const unitData = !isHeroId(unitId) ? getUnitById(selectedFaction, unitId) : null
-    return sum + (unitData?.cpCost ?? 0)
-  }, 0)
+  // Total CP uses effective cost (gear overrides like Small Formation reduce cost)
+  const totalCP = useMemo(
+    () =>
+      unitSlots.reduce((sum, unitId) => {
+        if (!unitId) return sum
+        if (isHeroId(unitId)) return sum
+        return sum + getEffectiveUnitCpCost(selectedFaction, unitId, armoryState)
+      }, 0),
+    [unitSlots, selectedFaction, armoryState]
+  )
 
   const unitsForFaction = getUnitsForFaction(selectedFaction)
-  const minUnitCost = unitsForFaction.length
-    ? Math.min(...unitsForFaction.map((u) => u.cpCost ?? Infinity))
-    : Infinity
+  const minUnitCost = useMemo(
+    () =>
+      unitsForFaction.length
+        ? Math.min(...unitsForFaction.map((u) => getEffectiveUnitCpCost(selectedFaction, u.id, armoryState)))
+        : Infinity,
+    [unitsForFaction, selectedFaction, armoryState]
+  )
   const addSlotDisabled = totalCP >= MAX_UNIT_CP || totalCP + minUnitCost > MAX_UNIT_CP
   const cpNumberRed = totalCP < MAX_UNIT_CP && totalCP + minUnitCost > MAX_UNIT_CP
 
@@ -188,8 +198,12 @@ const Units = () => {
                     hasUnit && displayData
                       ? (e) => {
                         const rect = e.currentTarget.getBoundingClientRect()
+                        const unitForTooltip =
+                          unitData && unitId
+                            ? { ...displayData, cpCost: getEffectiveUnitCpCost(selectedFaction, unitId, armoryState) }
+                            : displayData
                         setHoverTooltip({
-                          unit: displayData,
+                          unit: unitForTooltip,
                           anchorRect: {
                             left: rect.left,
                             top: rect.top,

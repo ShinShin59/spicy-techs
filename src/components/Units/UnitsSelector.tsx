@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from "react"
-import { useMainStore } from "@/store"
+import { useMainStore, useCurrentArmoryState } from "@/store"
 import { getUnitIconPath, getHudImagePath } from "@/utils/assetPaths"
+import { getEffectiveUnitCpCost } from "@/components/Armory/armory-utils"
 import { getUnitsForFaction, type UnitData } from "./units-utils"
 import {
   getHeroesForFaction,
@@ -35,6 +36,7 @@ const UnitsSelector = ({
 }: UnitsSelectorProps) => {
   const modalRef = useRef<HTMLDivElement>(null)
   const selectedFaction = useMainStore((s) => s.selectedFaction)
+  const armoryState = useCurrentArmoryState()
   const [pulseUnitId, setPulseUnitId] = useState<string | null>(null)
   const pulseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -108,9 +110,10 @@ const UnitsSelector = ({
         {/* Units/Heroes grid - same slot style and size as Units panel */}
         <div className="flex gap-2 flex-wrap">
           {units.map((unit) => {
-            const unitCost = !heroOnly ? (unit as UnitData).cpCost ?? 0 : 0
-            const overBudget = remainingCP != null && unitCost > remainingCP
+            const effectiveCost = !heroOnly ? getEffectiveUnitCpCost(selectedFaction, unit.id, armoryState) : 0
+            const overBudget = remainingCP != null && effectiveCost > remainingCP
             const disabled = !heroOnly && overBudget
+            const unitForTooltip = !heroOnly ? { ...unit, cpCost: effectiveCost } : unit
             return (
               <div
                 key={unit.id}
@@ -118,7 +121,7 @@ const UnitsSelector = ({
                 onMouseEnter={(e) => {
                   const rect = e.currentTarget.getBoundingClientRect()
                   setHoverTooltip({
-                    unit,
+                    unit: unitForTooltip,
                     anchorRect: {
                       left: rect.left,
                       top: rect.top,

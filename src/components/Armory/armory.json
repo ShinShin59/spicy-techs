@@ -1249,7 +1249,8 @@
       "Requires ::s_value:: [CommandPoint]"
     ],
     "image": "small_formation.png",
-    "id": "SmallFormation"
+    "id": "SmallFormation",
+    "unitCpCost": 2
   },
   {
     "name": "Deep Signals",

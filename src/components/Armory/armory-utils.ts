@@ -10,12 +10,15 @@ export interface GearItem {
   attributes: (string | { desc: string; target_effects_list: string[] })[]
   target_effects?: string[]
   image: string
+  /** When set, this gear overrides the unit's CP cost to this value when equipped. */
+  unitCpCost?: number
 }
 
 export interface UnitData {
   id: string
   name: string
   desc: string
+  cpCost?: number
   equipment: string[]
 }
 
@@ -58,4 +61,27 @@ export function getGearOptionsForUnit(unit: UnitData): GearItem[] {
   return unit.equipment
     .map((equipId) => getGearById(equipId))
     .filter((g): g is GearItem => g !== undefined)
+}
+
+/**
+ * Effective CP cost for a unit given current armory (gear can override via unitCpCost).
+ * Uses the unit's row in the faction list to resolve equipped gear.
+ */
+export function getEffectiveUnitCpCost(
+  faction: FactionLabel,
+  unitId: string,
+  factionArmory: (string | null)[][]
+): number {
+  const units = getUnitsForFaction(faction)
+  const unit = units.find((u) => u.id === unitId)
+  const base = unit?.cpCost ?? 0
+  const unitIndex = units.findIndex((u) => u.id === unitId)
+  if (unitIndex < 0) return base
+  const gearRow = factionArmory[unitIndex] ?? []
+  const overrides = gearRow
+    .filter((name): name is string => name != null)
+    .map((name) => getGearByName(name))
+    .filter((g): g is GearItem => g != null && g.unitCpCost != null)
+    .map((g) => g.unitCpCost!)
+  return overrides.length > 0 ? Math.min(...overrides) : base
 }
