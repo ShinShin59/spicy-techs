@@ -23,6 +23,7 @@ const BuildLayout = ({ mainBase, units, councillors, developments, armory, opera
   const selectedFaction = useMainStore((s) => s.selectedFaction)
   const currentLayout = useCurrentMainBaseLayout()
   const mainBaseColRef = useRef<HTMLDivElement>(null)
+  const rowRef = useRef<HTMLDivElement>(null)
   const [rowHeight, setRowHeight] = useState<number | null>(null)
 
   const mainBaseWidth = useMemo(() => {
@@ -37,10 +38,11 @@ const BuildLayout = ({ mainBase, units, councillors, developments, armory, opera
     return Math.max(h0, h1)
   }, [selectedFaction])
 
-  // Measure main base column height when it has natural size (row not stretched), then fix row height
+  // Measure row height: from main base column when visible, otherwise from the row itself (other modules)
   useEffect(() => {
-    if (!hasTopRow || !mainBase || !mainBaseColRef.current) return
-    const el = mainBaseColRef.current
+    if (!hasTopRow) return
+    const el = mainBase ? mainBaseColRef.current : rowRef.current
+    if (!el) return
     const measure = () => {
       const h = el.getBoundingClientRect().height
       if (h > 0) setRowHeight(h)
@@ -57,6 +59,7 @@ const BuildLayout = ({ mainBase, units, councillors, developments, armory, opera
     <div className="flex flex-col gap-6">
       {hasTopRow && (
         <div
+          ref={rowRef}
           className={`flex gap-6 transition-opacity duration-75 ${alignStretch ? "items-stretch" : "items-start"} ${rowVisible ? "opacity-100" : "opacity-0 pointer-events-none"}`}
           style={rowStyle}
           aria-hidden={!rowVisible}
@@ -68,13 +71,15 @@ const BuildLayout = ({ mainBase, units, councillors, developments, armory, opera
               {developments}
             </div>
           )}
-          <div
-            ref={mainBaseColRef}
-            className="shrink-0 flex flex-col"
-            style={{ width: mainBaseWidth, minHeight: mainBaseMinHeight ?? undefined }}
-          >
-            {mainBase}
-          </div>
+          {mainBase && (
+            <div
+              ref={mainBaseColRef}
+              className="shrink-0 flex flex-col"
+              style={{ width: mainBaseWidth, minHeight: mainBaseMinHeight ?? undefined }}
+            >
+              {mainBase}
+            </div>
+          )}
           {(operations || units) && (
             <div className="units-scroll-area shrink-0 flex flex-col gap-6 min-h-0 overflow-y-auto">
               {operations}

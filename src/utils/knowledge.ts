@@ -285,7 +285,7 @@ function getFlatKnowledgeModifiersFromBuildings(
       row.forEach((group, groupIndex) => {
         if (!Array.isArray(group)) return
         group.forEach((cell, cellIndex) => {
-          if (cell !== "Research Center") return
+          if (cell !== "Embassy") return
           const addDate = getBuildingAddDate(
             ctx.buildingDates,
             ctx.selectedFaction,
@@ -295,7 +295,7 @@ function getFlatKnowledgeModifiersFromBuildings(
             cellIndex
           )
           if (!buildingActiveAt(addDate, referenceDay)) return
-          result.push({ label: "Research Center", amount: 2 })
+          result.push({ label: "Embassy", amount: 2 })
         })
       })
     })
