@@ -42,3 +42,54 @@ export function getMinimumPathOrder(targetId: string): string[] {
   }
   return chain.reverse()
 }
+
+/** Simple ordinal helper: 1 → "1st", 2 → "2nd", 3 → "3rd", 4 → "4th", etc. */
+function formatOrdinal(n: number): string {
+  const v = n % 100
+  if (v >= 11 && v <= 13) return `${n}th`
+  switch (n % 10) {
+    case 1:
+      return `${n}st`
+    case 2:
+      return `${n}nd`
+    case 3:
+      return `${n}rd`
+    default:
+      return `${n}th`
+  }
+}
+
+/**
+ * Given a total number of days, returns a human phrase describing how close that
+ * is to the nearest Landsraad session (every 2 days), e.g.
+ *
+ * - "3 days before 2nd landstraad"
+ * - "9 days after 1st landstraad"
+ *
+ * Only returns a phrase when the distance to the nearest session is ≤ 10 days.
+ * Otherwise returns null.
+ */
+export function getLandstraadWindowPhrase(totalDays: number | undefined): string | null {
+  if (totalDays == null || !Number.isFinite(totalDays)) return null
+  const days = Math.max(0, Math.round(totalDays))
+
+  // Landsraad every 2 days, starting at day 2 (1st landstraad at day 2).
+  const approxIndex = Math.max(1, Math.round(days / 2))
+  const sessionDay = approxIndex * 2
+  const diff = days - sessionDay
+  const absDiff = Math.abs(diff)
+
+  // Outside the interesting window: don't show anything.
+  if (absDiff > 10) return null
+
+  const ordinal = formatOrdinal(approxIndex)
+  if (diff === 0) {
+    return `exactly on ${ordinal} landstraad`
+  }
+
+  const dayWord = absDiff === 1 ? "day" : "days"
+  if (diff < 0) {
+    return `${absDiff} ${dayWord} before ${ordinal} landstraad`
+  }
+  return `${absDiff} ${dayWord} after ${ordinal} landstraad`
+}

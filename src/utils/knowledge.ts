@@ -135,10 +135,28 @@ function getFlatKnowledgeModifiersFromDevelopments(
   return result
 }
 
+const KNOWLEDGE_CLAMP_MIN = 5
+const KNOWLEDGE_CLAMP_MAX = 50
+
+/** Rate used for THIS dev's own days = previous dev's knowledge (or global default). */
+function getRateForOwnDays(previousDevId: string | null, ctx: KnowledgeContext): number {
+  const raw =
+    previousDevId != null && ctx.developmentsKnowledge[previousDevId] != null
+      ? ctx.developmentsKnowledge[previousDevId]
+      : ctx.knowledgeBase
+  return Math.max(KNOWLEDGE_CLAMP_MIN, Math.min(KNOWLEDGE_CLAMP_MAX, Math.round(raw)))
+}
+
+export interface GetKnowledgeBreakdownOptions {
+  /** Dev that comes before this one in the order; their knowledge is used for THIS dev's days. */
+  previousDevId?: string | null
+}
+
 export function getKnowledgeBreakdownForDev(
   devId: string,
   domain: DevelopmentDomain,
-  ctx: KnowledgeContext
+  ctx: KnowledgeContext,
+  options?: GetKnowledgeBreakdownOptions
 ): KnowledgeModifierBreakdown {
   const base = DEFAULT_KNOWLEDGE_PER_DAY
 
@@ -160,11 +178,9 @@ export function getKnowledgeBreakdownForDev(
 
   const computedWithoutOverride = base * globalFactor * categoryFactor + flatSum
   const override = ctx.developmentsKnowledge[devId]
-  // Effective rate for "days" is always the global knowledgeBase (clamped 5–50)
-  const effective = Math.max(
-    DEFAULT_KNOWLEDGE_PER_DAY,
-    Math.min(50, Math.round(ctx.knowledgeBase))
-  )
+  // This dev's OWN days use the PREVIOUS dev's knowledge (or global); not this dev's value.
+  const previousDevId = options?.previousDevId ?? null
+  const effective = getRateForOwnDays(previousDevId, ctx)
 
   return {
     base,
@@ -192,9 +208,10 @@ export function totalDaysOfOrder(
     const id = orderedIds[i]
     const dev = idToDev.get(id)
     if (!dev) continue
+    const previousDevId = i > 0 ? orderedIds[i - 1]! : null
     const alreadyResearched = orderedIds.slice(0, i)
     const costKnowledge = costToResearchNext(dev, alreadyResearched, idToDev)
-    const breakdown = getKnowledgeBreakdownForDev(id, dev.domain, ctx)
+    const breakdown = getKnowledgeBreakdownForDev(id, dev.domain, ctx, { previousDevId })
     totalDays += costToDays(costKnowledge, breakdown.effective)
   }
 

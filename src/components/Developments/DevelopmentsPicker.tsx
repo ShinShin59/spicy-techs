@@ -137,7 +137,6 @@ export default function DevelopmentsPicker({ open, onClose }: DevelopmentsPicker
   const developmentsKnowledge = useMainStore((s) => s.developmentsKnowledge)
   const setDevelopmentKnowledge = useMainStore((s) => s.setDevelopmentKnowledge)
   const knowledgeBase = useMainStore((s) => s.knowledgeBase)
-  const setKnowledgeBase = useMainStore((s) => s.setKnowledgeBase)
 
   const [hoverTooltip, setHoverTooltip] = useState<{
     development: DevelopmentEntry
@@ -226,9 +225,15 @@ export default function DevelopmentsPicker({ open, onClose }: DevelopmentsPicker
     (d: DevelopmentEntry) => {
       if (!isAvailable(d) || selectedSet.has(d.id)) return
       playCancelSlotSound()
-      setSelectedDevelopments([...selectedDevelopments, d.id], computeSummary([...selectedDevelopments, d.id]))
+      const nextIds = [...selectedDevelopments, d.id]
+      const lastId = selectedDevelopments[selectedDevelopments.length - 1] ?? null
+      const lastKnowledge = lastId != null && developmentsKnowledge[lastId] != null
+        ? developmentsKnowledge[lastId]!
+        : knowledgeBase
+      setDevelopmentKnowledge(d.id, lastKnowledge)
+      setSelectedDevelopments(nextIds, computeSummary(nextIds))
     },
-    [selectedDevelopments, setSelectedDevelopments, isAvailable, selectedSet]
+    [selectedDevelopments, setSelectedDevelopments, setDevelopmentKnowledge, developmentsKnowledge, knowledgeBase, isAvailable, selectedSet]
   )
 
   const handleDeselect = useCallback(
@@ -295,7 +300,6 @@ export default function DevelopmentsPicker({ open, onClose }: DevelopmentsPicker
               onHover={setHoverTooltip}
               knowledgeContext={knowledgeContext}
               setDevelopmentKnowledge={setDevelopmentKnowledge}
-              setKnowledgeBase={setKnowledgeBase}
             />
             <Quadrant
               domain="military"
@@ -310,7 +314,6 @@ export default function DevelopmentsPicker({ open, onClose }: DevelopmentsPicker
               onHover={setHoverTooltip}
               knowledgeContext={knowledgeContext}
               setDevelopmentKnowledge={setDevelopmentKnowledge}
-              setKnowledgeBase={setKnowledgeBase}
             />
           </div>
           <div className="flex gap-6">
@@ -327,7 +330,6 @@ export default function DevelopmentsPicker({ open, onClose }: DevelopmentsPicker
               onHover={setHoverTooltip}
               knowledgeContext={knowledgeContext}
               setDevelopmentKnowledge={setDevelopmentKnowledge}
-              setKnowledgeBase={setKnowledgeBase}
             />
             <Quadrant
               domain="green"
@@ -342,23 +344,31 @@ export default function DevelopmentsPicker({ open, onClose }: DevelopmentsPicker
               onHover={setHoverTooltip}
               knowledgeContext={knowledgeContext}
               setDevelopmentKnowledge={setDevelopmentKnowledge}
-              setKnowledgeBase={setKnowledgeBase}
             />
           </div>
         </div>
       </div>
-      {hoverTooltip && (
-        <DevelopmentDetailTooltip
-          development={hoverTooltip.development}
-          followCursor={{ x: hoverTooltip.x, y: hoverTooltip.y }}
-          {...getCostForTooltip(hoverTooltip.development)}
-          knowledgeBreakdown={getKnowledgeBreakdownForDev(
-            hoverTooltip.development.id,
-            hoverTooltip.development.domain,
-            knowledgeContext
-          )}
-        />
-      )}
+      {hoverTooltip && (() => {
+        const dev = hoverTooltip.development
+        const idx = selectedDevelopments.indexOf(dev.id)
+        const previousDevId =
+          idx >= 0
+            ? (selectedDevelopments[idx - 1] ?? null)
+            : (selectedDevelopments[selectedDevelopments.length - 1] ?? null)
+        return (
+          <DevelopmentDetailTooltip
+            development={dev}
+            followCursor={{ x: hoverTooltip.x, y: hoverTooltip.y }}
+            {...getCostForTooltip(dev)}
+            knowledgeBreakdown={getKnowledgeBreakdownForDev(
+              dev.id,
+              dev.domain,
+              knowledgeContext,
+              { previousDevId }
+            )}
+          />
+        )
+      })()}
     </>
   )
 }
@@ -376,7 +386,6 @@ interface QuadrantProps {
   onHover: React.Dispatch<React.SetStateAction<{ development: DevelopmentEntry; x: number; y: number } | null>>
   knowledgeContext: KnowledgeContext
   setDevelopmentKnowledge: (id: string, value: number) => void
-  setKnowledgeBase: (value: number) => void
 }
 
 function Quadrant({
@@ -391,8 +400,7 @@ function Quadrant({
   onDeselect,
   onHover,
   knowledgeContext,
-  setDevelopmentKnowledge: _setDevelopmentKnowledge,
-  setKnowledgeBase,
+  setDevelopmentKnowledge,
 }: QuadrantProps) {
   const maxX = useMemo(
     () => (developments.length ? Math.max(...developments.map((d) => d.gridX)) : 0),
@@ -590,20 +598,30 @@ function Quadrant({
               {/* Order badge: shared with Main Base (OrderBadge display-only, compact in picker) */}
               {orderNumber !== null && <OrderBadge orderNumber={orderNumber} compact />}
               {state === "selected" && orderNumber === null && <OrderBadge compact>✓</OrderBadge>}
-              {/* Knowledge badge: top-left; on last selected dev, +/- adjusts global knowledgeBase (updates days in all tooltips) */}
+              {/* Knowledge badge: this dev's value (used for NEXT devs' days). Only last selected is editable. */}
               {state === "selected" && knowledgeBreakdown && (
                 <div className="opacity-0 group-hover:opacity-100 transition-opacity">
                   <KnowledgeBadge
-                    value={knowledgeBreakdown.effective}
+                    value={Math.round(
+                      Math.max(5, Math.min(50, knowledgeBreakdown.override ?? knowledgeContext.knowledgeBase))
+                    )}
                     breakdown={knowledgeBreakdown}
                     onIncrement={
                       d.id === lastSelectedId
-                        ? () => setKnowledgeBase(knowledgeBreakdown.effective + 1)
+                        ? () =>
+                          setDevelopmentKnowledge(
+                            d.id,
+                            (knowledgeBreakdown.override ?? knowledgeContext.knowledgeBase) + 1
+                          )
                         : undefined
                     }
                     onDecrement={
                       d.id === lastSelectedId
-                        ? () => setKnowledgeBase(knowledgeBreakdown.effective - 1)
+                        ? () =>
+                          setDevelopmentKnowledge(
+                            d.id,
+                            (knowledgeBreakdown.override ?? knowledgeContext.knowledgeBase) - 1
+                          )
                         : undefined
                     }
                   />

@@ -2,6 +2,7 @@ import { createPortal } from "react-dom"
 import TooltipWrapper from "@/components/shared/TooltipWrapper"
 import { TIME_ICON_PATH } from "@/utils/assetPaths"
 import type { KnowledgeModifierBreakdown } from "@/utils/knowledge"
+import { getLandstraadWindowPhrase } from "./developmentsCostUtils"
 
 export type DevelopmentDomain = "economic" | "military" | "statecraft" | "green"
 
@@ -150,6 +151,7 @@ function TooltipContent({ development, costKnowledge, knowledgeBreakdown }: Tool
     knowledgeBreakdown?.effective ?? DEFAULT_KNOWLEDGE_PER_DAY
   const costDays =
     costKnowledge != null ? Math.round(costKnowledge / knowledgePerDay) : undefined
+  const landstraadPhrase = costDays != null ? getLandstraadWindowPhrase(costDays) : null
   return (
     <>
       <div className="px-3 py-2 border-b border-zinc-700/80 bg-zinc-800/90">
@@ -167,9 +169,9 @@ function TooltipContent({ development, costKnowledge, knowledgeBreakdown }: Tool
             </div>
           )}
         </div>
-        {knowledgeBreakdown && (
-          <div className="mt-0.5 text-[10px] text-zinc-400">
-            ~{Math.round(knowledgePerDay)} Knowledge / day
+        {landstraadPhrase && (
+          <div className="mt-0.5 text-[10px] text-sky-300">
+            {landstraadPhrase}
           </div>
         )}
         <div className={`text-xs ${colorClass}`}>{categoryLabel}</div>

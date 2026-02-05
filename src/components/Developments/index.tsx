@@ -3,6 +3,7 @@ import { useMainStore } from "@/store"
 import { getDevelopmentsSlotPath } from "@/utils/assetPaths"
 import { playDevelopmentsOpenSound, playDevelopmentsCloseSound } from "@/utils/sound"
 import { totalCostOfOrder, formatDaysAsMonthsAndDays } from "@/utils/techCost"
+import { getLandstraadWindowPhrase } from "./developmentsCostUtils"
 import { totalDaysOfOrder, type DevWithTierAndDomain } from "@/utils/knowledge"
 import PanelCorners from "@/components/PanelCorners"
 import { PANEL_BORDER_HOVER_CLASS } from "@/components/shared/panelBorderHover"
@@ -87,10 +88,15 @@ const Developments = () => {
         })}
       </button>
       {totalCostAndDays && (
-        <div className="flex justify-center pt-2">
+        <div className="flex flex-col items-center pt-2 gap-0.5">
           <span className="text-xs text-zinc-500 tabular-nums">
             {formatDaysAsMonthsAndDays(totalCostAndDays.days)}
           </span>
+          {getLandstraadWindowPhrase(totalCostAndDays.days) && (
+            <span className="text-[11px] text-sky-300 tabular-nums">
+              {getLandstraadWindowPhrase(totalCostAndDays.days)!}
+            </span>
+          )}
         </div>
       )}
       {pickerOpen && (
