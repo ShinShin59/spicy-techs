@@ -15,10 +15,10 @@ function installActionLog() {
   useMainStore.subscribe((state) => {
     if (first) {
       first = false
-      prev = { ...state } as Record<string, unknown>
+      prev = { ...state } as unknown as Record<string, unknown>
       return
     }
-    const s = state as Record<string, unknown>
+    const s = state as unknown as Record<string, unknown>
     const keys = Object.keys(s).filter(
       (k) =>
         k !== "lastSavedSnapshot" &&
@@ -29,7 +29,7 @@ function installActionLog() {
       actionLog.push({ t: Date.now(), keys })
       if (actionLog.length > ACTION_LOG_MAX) actionLog.shift()
     }
-    prev = { ...state } as Record<string, unknown>
+    prev = { ...state } as unknown as Record<string, unknown>
   })
 }
 
