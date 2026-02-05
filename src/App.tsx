@@ -14,7 +14,7 @@ import BuildsSidebar from "./components/BuildsSidebar"
 import Metadata from "./components/Metadata"
 import { useMainStore } from "./store"
 import { useUIStore } from "./store/ui"
-import { decodeBuildPayload } from "./utils/mainBaseShare"
+import { decodeBuildPayload } from "./utils/buildShare"
 import { startBackgroundMusic } from "./utils/sound"
 import "./utils/assetPaths"
 

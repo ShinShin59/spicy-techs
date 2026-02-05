@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react"
 import { useMainStore, getSharePayloadFromState } from "@/store"
 import { useShallow } from "zustand/react/shallow"
-import { encodeBuildPayload, getShareUrl } from "@/utils/mainBaseShare"
+import { encodeBuildPayload, getShareUrlPreferShort } from "@/utils/buildShare"
 
 export function useShareButton() {
   const sharePayload = useMainStore(useShallow(getSharePayloadFromState))
@@ -14,10 +14,14 @@ export function useShareButton() {
     }
   }, [])
 
-  const handleShare = () => {
+  const handleShare = async () => {
     const encoded = encodeBuildPayload(sharePayload)
-    const url = getShareUrl(encoded)
-    void navigator.clipboard.writeText(url).catch(() => { })
+    const url = await getShareUrlPreferShort(encoded)
+    try {
+      await navigator.clipboard.writeText(url)
+    } catch {
+      // Ignore clipboard errors – nothing else to do in a pure-frontend app.
+    }
     if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current)
     setCopied(true)
     copyTimeoutRef.current = setTimeout(() => {

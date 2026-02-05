@@ -4,7 +4,7 @@
 import { useMemo } from "react"
 import { create } from "zustand"
 import { devtools, persist } from "zustand/middleware"
-import type { SharedBuildPayload } from "../utils/mainBaseShare"
+import type { SharedBuildPayload } from "../utils/buildShare"
 import type { MainBaseLayout, MainBaseState, MainBaseStatePerFaction } from "./main-base"
 import { mainBasesState, getMainBaseLayoutForIndex, hasMainBaseVariant, initializeMainBaseState } from "./main-base"
 import {
