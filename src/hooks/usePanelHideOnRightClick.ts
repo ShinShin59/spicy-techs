@@ -13,9 +13,11 @@ export function usePanelHideOnRightClick(
   const onContextMenu = useCallback(
     (e: React.MouseEvent) => {
       if (!isOpen) return
-      // Don't hide when right-clicking on a slot (marked with data-panel-slot)
-      const slot = (e.target as HTMLElement).closest("[data-panel-slot]")
-      if (slot && e.currentTarget.contains(slot)) return
+      // Don't hide when right-clicking on a slot (marked with data-panel-slot) or DatePicker
+      const target = e.target as HTMLElement
+      const slot = target.closest("[data-panel-slot]")
+      const datePicker = target.closest("[data-date-picker]")
+      if ((slot && e.currentTarget.contains(slot)) || datePicker) return
       e.preventDefault()
       toggle()
       playMenuToggleSound(false)

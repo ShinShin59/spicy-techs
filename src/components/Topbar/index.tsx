@@ -9,10 +9,11 @@ import { getHudImagePath } from "@/utils/assetPaths"
 
 interface TopbarProps {
   onNew: () => void
+  onReset: () => void
   onFork: () => void
 }
 
-const Topbar = ({ onNew, onFork }: TopbarProps) => {
+const Topbar = ({ onNew, onReset, onFork }: TopbarProps) => {
   const [logoVisible, setLogoVisible] = useState(false)
   const [titleAnimation, setTitleAnimation] = useState<string | null>(null)
   const isInitialMount = useRef(true)
@@ -62,6 +63,9 @@ const Topbar = ({ onNew, onFork }: TopbarProps) => {
         <FactionSelector />
         <Button onClick={onNew} aria-label="Create new build" mutedWhenUnpressed={false}>
           New
+        </Button>
+        <Button onClick={onReset} aria-label="Reset current build" mutedWhenUnpressed={false}>
+          Reset
         </Button>
         <Button onClick={onFork} aria-label="Copy current build" mutedWhenUnpressed={false}>
           Copy

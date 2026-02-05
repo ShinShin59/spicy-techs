@@ -95,6 +95,8 @@ export interface SavedBuild {
   developmentsKnowledge?: DevelopmentsKnowledge
   /** Optional global Knowledge/day (5–50) used for all development time tooltips (absent for older saves). */
   knowledgeBase?: number
+  /** Optional per-building add date: key `${rowIndex}-${groupIndex}-${cellIndex}`, value = total days since 01.01.10192 AG (absent for older saves). */
+  buildingDates?: Record<FactionLabel, Record<string, number> | [Record<string, number>, Record<string, number>]>
   metadata: BuildMetadata
 }
 
@@ -112,6 +114,7 @@ export interface NormalizedBuildFields {
   selectedDevelopments: SelectedDevelopments
   developmentsKnowledge: DevelopmentsKnowledge
   knowledgeBase: number
+  buildingDates: Record<FactionLabel, Record<string, number> | [Record<string, number>, Record<string, number>]>
   metadata: BuildMetadata
 }
 
@@ -130,6 +133,7 @@ export type BuildSnapshotState = {
   selectedDevelopments: SelectedDevelopments
   developmentsKnowledge: DevelopmentsKnowledge
   knowledgeBase: number
+  buildingDates: Record<FactionLabel, Record<string, number> | [Record<string, number>, Record<string, number>]>
   metadata: BuildMetadata
   currentBuildName: string
 }
@@ -150,6 +154,7 @@ export function getBuildSnapshot(state: BuildSnapshotState): string {
     selectedDevelopments: state.selectedDevelopments,
     developmentsKnowledge: state.developmentsKnowledge,
     knowledgeBase: state.knowledgeBase,
+    buildingDates: state.buildingDates,
     metadata: state.metadata,
     currentBuildName: state.currentBuildName,
   })

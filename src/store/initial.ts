@@ -59,6 +59,14 @@ export const initialSelectedMainBaseIndex: Record<FactionLabel, 0 | 1> = Object.
   (FACTION_LABELS as readonly FactionLabel[]).map((f) => [f, 0])
 ) as Record<FactionLabel, 0 | 1>
 
+export const initialBuildingDates: Record<FactionLabel, Record<string, number> | [Record<string, number>, Record<string, number>]> =
+  Object.fromEntries(
+    (FACTION_LABELS as readonly FactionLabel[]).map((f) => [
+      f,
+      MAIN_BASE_VARIANT_FACTIONS.includes(f) ? [{}, {}] : {},
+    ])
+  ) as Record<FactionLabel, Record<string, number> | [Record<string, number>, Record<string, number>]>
+
 export function createEmptyArmoryForFaction(): (string | null)[][] {
   return Array.from({ length: UNITS_PER_FACTION }, () =>
     Array.from({ length: GEAR_SLOTS_PER_UNIT }, () => null)
@@ -166,6 +174,11 @@ export function normalizeLoadedBuild(
     typeof rawKnowledgeBase === "number"
       ? Math.max(MIN_KNOWLEDGE_BASE, Math.min(MAX_KNOWLEDGE_BASE, Math.round(rawKnowledgeBase)))
       : DEFAULT_KNOWLEDGE_BASE
+  const rawBuildingDates = (build as SavedBuild & { buildingDates?: Record<string, unknown> }).buildingDates
+  const buildingDates =
+    rawBuildingDates && typeof rawBuildingDates === "object"
+      ? (rawBuildingDates as NormalizedBuildFields["buildingDates"])
+      : initialBuildingDates
   return {
     unitSlotCount: typeof build.unitSlotCount === "number" ? build.unitSlotCount : DEFAULT_UNIT_SLOT_COUNT,
     armoryState: build.armoryState || initialArmoryState,
@@ -177,6 +190,7 @@ export function normalizeLoadedBuild(
     selectedDevelopments: Array.isArray(build.selectedDevelopments) ? [...build.selectedDevelopments] : [],
     developmentsKnowledge,
     knowledgeBase,
+    buildingDates,
     metadata: normalizeMetadata(build.metadata, defaultAuthor),
   }
 }

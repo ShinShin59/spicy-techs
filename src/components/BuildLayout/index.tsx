@@ -62,7 +62,7 @@ const BuildLayout = ({ mainBase, units, councillors, developments, armory, opera
           aria-hidden={!rowVisible}
         >
           {(councillors || developments) && (
-            <div className="shrink-0 flex flex-col min-h-0 overflow-y-auto">
+            <div className="shrink-0 flex flex-col min-h-0 overflow-hidden">
               {councillors}
               <div className="flex-1 min-h-0" aria-hidden />
               {developments}

@@ -6,8 +6,14 @@ import DevelopmentDetailTooltip, {
   type DevelopmentEntry,
   type DevelopmentDomain,
 } from "./DevelopmentDetailTooltip"
-import { costToResearchNext } from "@/utils/techCost"
-import { getKnowledgeBreakdownForDev, type KnowledgeContext } from "@/utils/knowledge"
+import { costToResearchNext, DEFAULT_KNOWLEDGE_PER_DAY } from "@/utils/techCost"
+import { getMinimumPathOrder } from "./developmentsCostUtils"
+import {
+  getKnowledgeBreakdownForDev,
+  totalDaysOfOrder,
+  type DevWithTierAndDomain,
+  type KnowledgeContext,
+} from "@/utils/knowledge"
 import KnowledgeBadge from "@/components/KnowledgeBadge"
 import PanelCorners from "@/components/PanelCorners"
 import OrderBadge from "@/components/OrderBadge"
@@ -136,7 +142,9 @@ export default function DevelopmentsPicker({ open, onClose }: DevelopmentsPicker
   const mainBaseState = useMainStore((s) => s.mainBaseState)
   const developmentsKnowledge = useMainStore((s) => s.developmentsKnowledge)
   const setDevelopmentKnowledge = useMainStore((s) => s.setDevelopmentKnowledge)
+  const clearDevelopmentKnowledge = useMainStore((s) => s.clearDevelopmentKnowledge)
   const knowledgeBase = useMainStore((s) => s.knowledgeBase)
+  const buildingDates = useMainStore((s) => s.buildingDates)
 
   const [hoverTooltip, setHoverTooltip] = useState<{
     development: DevelopmentEntry
@@ -227,13 +235,40 @@ export default function DevelopmentsPicker({ open, onClose }: DevelopmentsPicker
       playCancelSlotSound()
       const nextIds = [...selectedDevelopments, d.id]
       const lastId = selectedDevelopments[selectedDevelopments.length - 1] ?? null
-      const lastKnowledge = lastId != null && developmentsKnowledge[lastId] != null
-        ? developmentsKnowledge[lastId]!
-        : knowledgeBase
-      setDevelopmentKnowledge(d.id, lastKnowledge)
+      // Only set override when adding a dev that has a previous one (so next devs use this rate)
+      if (lastId != null) {
+        const lastKnowledge =
+          developmentsKnowledge[lastId] != null
+            ? developmentsKnowledge[lastId]!
+            : (() => {
+              const lastDev = idToDev.get(lastId)
+              return lastDev != null
+                ? getKnowledgeBreakdownForDev(lastId, lastDev.domain, {
+                  selectedFaction,
+                  mainBaseState,
+                  selectedDevelopments,
+                  developmentsKnowledge,
+                  knowledgeBase,
+                  buildingDates,
+                }).computedWithoutOverride
+                : knowledgeBase
+            })()
+        setDevelopmentKnowledge(d.id, lastKnowledge)
+      }
       setSelectedDevelopments(nextIds, computeSummary(nextIds))
     },
-    [selectedDevelopments, setSelectedDevelopments, setDevelopmentKnowledge, developmentsKnowledge, knowledgeBase, isAvailable, selectedSet]
+    [
+      selectedDevelopments,
+      setSelectedDevelopments,
+      setDevelopmentKnowledge,
+      developmentsKnowledge,
+      knowledgeBase,
+      isAvailable,
+      selectedSet,
+      selectedFaction,
+      mainBaseState,
+      buildingDates,
+    ]
   )
 
   const handleDeselect = useCallback(
@@ -245,6 +280,30 @@ export default function DevelopmentsPicker({ open, onClose }: DevelopmentsPicker
     },
     [selectedSet, selectedDevelopments, setSelectedDevelopments, cannotDeselectIds]
   )
+
+  const handleResetDomain = useCallback(
+    (domain: DevelopmentDomain) => {
+      const next = selectedDevelopments.filter((id) => {
+        const dev = idToDev.get(id)
+        return dev == null || dev.domain !== domain
+      })
+      if (next.length === selectedDevelopments.length) return
+      playMenuToggleSound(false)
+      selectedDevelopments.forEach((id) => {
+        const dev = idToDev.get(id)
+        if (dev?.domain === domain) clearDevelopmentKnowledge(id)
+      })
+      setSelectedDevelopments(next, computeSummary(next))
+    },
+    [selectedDevelopments, setSelectedDevelopments, clearDevelopmentKnowledge]
+  )
+
+  const handleResetAll = useCallback(() => {
+    if (selectedDevelopments.length === 0) return
+    playMenuToggleSound(false)
+    selectedDevelopments.forEach((id) => clearDevelopmentKnowledge(id))
+    setSelectedDevelopments([], { economic: 0, military: 0, green: 0, statecraft: 0 })
+  }, [selectedDevelopments, setSelectedDevelopments, clearDevelopmentKnowledge])
 
   useEffect(() => {
     if (!open) return
@@ -274,6 +333,7 @@ export default function DevelopmentsPicker({ open, onClose }: DevelopmentsPicker
     selectedDevelopments,
     developmentsKnowledge,
     knowledgeBase,
+    buildingDates,
   }
 
   return (
@@ -281,39 +341,57 @@ export default function DevelopmentsPicker({ open, onClose }: DevelopmentsPicker
       <div className="fixed inset-0 z-40 bg-black/70" aria-hidden />
       <div
         ref={modalRef}
-        className="fixed left-1/2 top-1/2 z-50 flex max-h-[90vh] w-max max-w-[95vw] bg-zinc-950 -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded border border-zinc-700 shadow-2xl p-6"
+        className="group/modal fixed left-1/2 top-1/2 z-50 flex max-h-[90vh] w-max max-w-[95vw] bg-zinc-950 -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded border border-zinc-700 shadow-2xl p-6"
       >
         <img src={CROSS_IMAGE} alt="" className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 scale-50 z-0 object-center" />
         <PanelCorners />
+        <button
+          type="button"
+          className={`${RESET_BUTTON_CLASS} z-20 !opacity-0 transition-opacity group-hover/modal:!opacity-75 hover:!opacity-100`}
+          onClick={(e) => {
+            e.stopPropagation()
+            handleResetAll()
+          }}
+          aria-label="Reset all development trees"
+          title="Reset all development trees"
+        >
+          ⛔
+        </button>
         <div className="flex flex-1 flex-col gap-6 overflow-auto min-h-0 bg-zinc-950">
           <div className="flex gap-6">
             <Quadrant
               domain="economic"
               developments={byDomain.economic}
               selectedSet={selectedSet}
+              selectedDevelopments={selectedDevelopments}
               lastSelectedId={selectedDevelopments[selectedDevelopments.length - 1] ?? null}
               cannotDeselectIds={cannotDeselectIds}
               isAvailable={isAvailable}
               getOrderNumber={getOrderNumber}
               onSelect={handleSelect}
               onDeselect={handleDeselect}
+              onResetDomain={() => handleResetDomain("economic")}
               onHover={setHoverTooltip}
               knowledgeContext={knowledgeContext}
               setDevelopmentKnowledge={setDevelopmentKnowledge}
+              totalDaysOfOrder={totalDaysOfOrder}
             />
             <Quadrant
               domain="military"
               developments={byDomain.military}
               selectedSet={selectedSet}
+              selectedDevelopments={selectedDevelopments}
               lastSelectedId={selectedDevelopments[selectedDevelopments.length - 1] ?? null}
               cannotDeselectIds={cannotDeselectIds}
               isAvailable={isAvailable}
               getOrderNumber={getOrderNumber}
               onSelect={handleSelect}
               onDeselect={handleDeselect}
+              onResetDomain={() => handleResetDomain("military")}
               onHover={setHoverTooltip}
               knowledgeContext={knowledgeContext}
               setDevelopmentKnowledge={setDevelopmentKnowledge}
+              totalDaysOfOrder={totalDaysOfOrder}
             />
           </div>
           <div className="flex gap-6">
@@ -321,29 +399,35 @@ export default function DevelopmentsPicker({ open, onClose }: DevelopmentsPicker
               domain="statecraft"
               developments={byDomain.statecraft}
               selectedSet={selectedSet}
+              selectedDevelopments={selectedDevelopments}
               lastSelectedId={selectedDevelopments[selectedDevelopments.length - 1] ?? null}
               cannotDeselectIds={cannotDeselectIds}
               isAvailable={isAvailable}
               getOrderNumber={getOrderNumber}
               onSelect={handleSelect}
               onDeselect={handleDeselect}
+              onResetDomain={() => handleResetDomain("statecraft")}
               onHover={setHoverTooltip}
               knowledgeContext={knowledgeContext}
               setDevelopmentKnowledge={setDevelopmentKnowledge}
+              totalDaysOfOrder={totalDaysOfOrder}
             />
             <Quadrant
               domain="green"
               developments={byDomain.green}
               selectedSet={selectedSet}
+              selectedDevelopments={selectedDevelopments}
               lastSelectedId={selectedDevelopments[selectedDevelopments.length - 1] ?? null}
               cannotDeselectIds={cannotDeselectIds}
               isAvailable={isAvailable}
               getOrderNumber={getOrderNumber}
               onSelect={handleSelect}
               onDeselect={handleDeselect}
+              onResetDomain={() => handleResetDomain("green")}
               onHover={setHoverTooltip}
               knowledgeContext={knowledgeContext}
               setDevelopmentKnowledge={setDevelopmentKnowledge}
+              totalDaysOfOrder={totalDaysOfOrder}
             />
           </div>
         </div>
@@ -351,21 +435,60 @@ export default function DevelopmentsPicker({ open, onClose }: DevelopmentsPicker
       {hoverTooltip && (() => {
         const dev = hoverTooltip.development
         const idx = selectedDevelopments.indexOf(dev.id)
-        const previousDevId =
+        // For unselected devs, show cumulative total including unselected prerequisites (deep devs)
+        const orderForTotal =
           idx >= 0
-            ? (selectedDevelopments[idx - 1] ?? null)
-            : (selectedDevelopments[selectedDevelopments.length - 1] ?? null)
+            ? selectedDevelopments
+            : [
+              ...selectedDevelopments,
+              ...getMinimumPathOrder(dev.id).filter((id) => !selectedSet.has(id)),
+              dev.id,
+            ]
+        const devIdx = orderForTotal.indexOf(dev.id)
+        const referenceDay =
+          devIdx > 0
+            ? Math.round(
+              totalDaysOfOrder(
+                orderForTotal.slice(0, devIdx),
+                idToDev as unknown as Map<string, DevWithTierAndDomain>,
+                knowledgeContext
+              )
+            )
+            : 0
+        const previousDevId = devIdx > 0 ? orderForTotal[devIdx - 1]! : null
+        const previousDev = previousDevId != null ? idToDev.get(previousDevId) : null
+        const previousDevReferenceDay =
+          devIdx > 1
+            ? Math.round(
+              totalDaysOfOrder(
+                orderForTotal.slice(0, devIdx - 1),
+                idToDev as unknown as Map<string, DevWithTierAndDomain>,
+                knowledgeContext
+              )
+            )
+            : 0
+        const previousDevComputedRate =
+          previousDev != null
+            ? getKnowledgeBreakdownForDev(previousDevId!, previousDev.domain, knowledgeContext, {
+              referenceDay: previousDevReferenceDay,
+            }).computedWithoutOverride
+            : undefined
+        const knowledgeBreakdown = getKnowledgeBreakdownForDev(dev.id, dev.domain, knowledgeContext, {
+          previousDevId,
+          previousDevComputedRate,
+          referenceDay,
+        })
+        const { costKnowledge } = getCostForTooltip(dev)
+        const daysToCompleteThisDev =
+          referenceDay +
+          Math.round(costKnowledge / (knowledgeBreakdown.effective || DEFAULT_KNOWLEDGE_PER_DAY))
         return (
           <DevelopmentDetailTooltip
             development={dev}
             followCursor={{ x: hoverTooltip.x, y: hoverTooltip.y }}
-            {...getCostForTooltip(dev)}
-            knowledgeBreakdown={getKnowledgeBreakdownForDev(
-              dev.id,
-              dev.domain,
-              knowledgeContext,
-              { previousDevId }
-            )}
+            costKnowledge={costKnowledge}
+            knowledgeBreakdown={knowledgeBreakdown}
+            daysToCompleteThisDev={daysToCompleteThisDev}
           />
         )
       })()}
@@ -373,34 +496,47 @@ export default function DevelopmentsPicker({ open, onClose }: DevelopmentsPicker
   )
 }
 
+const RESET_BUTTON_CLASS =
+  "absolute top-2 right-2 w-4 h-4 flex items-center justify-center text-lg grayscale cursor-pointer scale-50"
+
 interface QuadrantProps {
   domain: DevelopmentDomain
   developments: DevelopmentEntry[]
   selectedSet: Set<string>
+  selectedDevelopments: string[]
   lastSelectedId: string | null
   cannotDeselectIds: Set<string>
   isAvailable: (d: DevelopmentEntry) => boolean
   getOrderNumber: (id: string) => number | null
   onSelect: (d: DevelopmentEntry) => void
   onDeselect: (d: DevelopmentEntry) => void
+  onResetDomain: () => void
   onHover: React.Dispatch<React.SetStateAction<{ development: DevelopmentEntry; x: number; y: number } | null>>
   knowledgeContext: KnowledgeContext
   setDevelopmentKnowledge: (id: string, value: number) => void
+  totalDaysOfOrder: (
+    orderedIds: string[],
+    idToDev: Map<string, DevWithTierAndDomain>,
+    ctx: KnowledgeContext
+  ) => number
 }
 
 function Quadrant({
   domain,
   developments,
   selectedSet,
+  selectedDevelopments,
   lastSelectedId,
   cannotDeselectIds,
   isAvailable,
   getOrderNumber,
   onSelect,
   onDeselect,
+  onResetDomain,
   onHover,
   knowledgeContext,
   setDevelopmentKnowledge,
+  totalDaysOfOrder,
 }: QuadrantProps) {
   const maxX = useMemo(
     () => (developments.length ? Math.max(...developments.map((d) => d.gridX)) : 0),
@@ -440,8 +576,27 @@ function Quadrant({
 
   const quadrantBg = getDevelopmentPickerAssetPath(QUADRANT_BG_FILES[domain])
 
+  const domainLabels: Record<DevelopmentDomain, string> = {
+    economic: "economic",
+    military: "military",
+    statecraft: "statecraft",
+    green: "green",
+  }
+
   return (
-    <div className="relative w-max min-w-0 min-h-[140px] overflow-auto bg-zinc-900/80 pl-5 pr-8 pt-5 pb-5 border border-transparent rounded-lg">
+    <div className="group/quadrant relative w-max min-w-0 min-h-[140px] overflow-auto bg-zinc-900/80 pl-5 pr-8 pt-5 pb-5 border border-transparent rounded-lg">
+      <button
+        type="button"
+        className={`${RESET_BUTTON_CLASS} z-20 !opacity-0 transition-opacity group-hover/quadrant:!opacity-75 hover:!opacity-100`}
+        onClick={(e) => {
+          e.stopPropagation()
+          onResetDomain()
+        }}
+        aria-label={`Reset ${domainLabels[domain]} tree`}
+        title={`Reset ${domainLabels[domain]} tree`}
+      >
+        ⛔
+      </button>
       {/* Domain grid background as filigree at 50% opacity */}
       <div
         className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat opacity-10 border border-transparent rounded-lg"
@@ -462,9 +617,42 @@ function Quadrant({
           const orderNumber = getOrderNumber(d.id)
           const spriteStyle = getDevelopmentSpriteStyle(d.gfx)
           const frameImage = getFrameImage(d.domain, state === "selected")
+          const idx = selectedDevelopments.indexOf(d.id)
+          const referenceDay =
+            idx > 0
+              ? Math.round(
+                totalDaysOfOrder(
+                  selectedDevelopments.slice(0, idx),
+                  idToDev as unknown as Map<string, DevWithTierAndDomain>,
+                  knowledgeContext
+                )
+              )
+              : 0
+          const previousDevId = idx >= 0 ? (selectedDevelopments[idx - 1] ?? null) : null
+          const previousDev = previousDevId != null ? idToDev.get(previousDevId) : null
+          const previousDevReferenceDay =
+            idx > 1
+              ? Math.round(
+                totalDaysOfOrder(
+                  selectedDevelopments.slice(0, idx - 1),
+                  idToDev as unknown as Map<string, DevWithTierAndDomain>,
+                  knowledgeContext
+                )
+              )
+              : 0
+          const previousDevComputedRate =
+            previousDev != null
+              ? getKnowledgeBreakdownForDev(previousDevId!, previousDev.domain, knowledgeContext, {
+                referenceDay: previousDevReferenceDay,
+              }).computedWithoutOverride
+              : undefined
           const knowledgeBreakdown =
             state === "selected"
-              ? getKnowledgeBreakdownForDev(d.id, d.domain, knowledgeContext)
+              ? getKnowledgeBreakdownForDev(d.id, d.domain, knowledgeContext, {
+                previousDevId,
+                previousDevComputedRate,
+                referenceDay,
+              })
               : null
           return (
             <div
@@ -598,12 +786,15 @@ function Quadrant({
               {/* Order badge: shared with Main Base (OrderBadge display-only, compact in picker) */}
               {orderNumber !== null && <OrderBadge orderNumber={orderNumber} compact />}
               {state === "selected" && orderNumber === null && <OrderBadge compact>✓</OrderBadge>}
-              {/* Knowledge badge: this dev's value (used for NEXT devs' days). Only last selected is editable. */}
-              {state === "selected" && knowledgeBreakdown && (
+              {/* Knowledge badge: this dev's value (used for NEXT devs' days). Only last selected is visible & editable. */}
+              {state === "selected" && d.id === lastSelectedId && knowledgeBreakdown && (
                 <div className="opacity-0 group-hover:opacity-100 transition-opacity">
                   <KnowledgeBadge
                     value={Math.round(
-                      Math.max(5, Math.min(50, knowledgeBreakdown.override ?? knowledgeContext.knowledgeBase))
+                      Math.max(
+                        5,
+                        Math.min(50, knowledgeBreakdown.override ?? knowledgeBreakdown.computedWithoutOverride)
+                      )
                     )}
                     breakdown={knowledgeBreakdown}
                     onIncrement={
@@ -611,7 +802,7 @@ function Quadrant({
                         ? () =>
                           setDevelopmentKnowledge(
                             d.id,
-                            (knowledgeBreakdown.override ?? knowledgeContext.knowledgeBase) + 1
+                            (knowledgeBreakdown.override ?? knowledgeBreakdown.computedWithoutOverride) + 1
                           )
                         : undefined
                     }
@@ -620,7 +811,7 @@ function Quadrant({
                         ? () =>
                           setDevelopmentKnowledge(
                             d.id,
-                            (knowledgeBreakdown.override ?? knowledgeContext.knowledgeBase) - 1
+                            (knowledgeBreakdown.override ?? knowledgeBreakdown.computedWithoutOverride) - 1
                           )
                         : undefined
                     }

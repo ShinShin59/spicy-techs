@@ -41,8 +41,10 @@ import {
   getUniqueBuildName,
   isFactionBaseEmpty,
 } from "./types"
+import { buildingHasCategoryBonus } from "@/utils/knowledge"
 import {
   initialBuildingOrder,
+  initialBuildingDates,
   initialSelectedMainBaseIndex,
   initialArmoryState,
   initialUnitSlotsState,
@@ -188,6 +190,24 @@ function getBuildingOrderSlice(
   return (Array.isArray(single) ? single : EMPTY_BUILDING_ORDER) as BuildingCoords[]
 }
 
+type BuildingDatesPerFaction = Record<string, number> | [Record<string, number>, Record<string, number>]
+
+function getBuildingDatesSlice(
+  dates: Record<FactionLabel, BuildingDatesPerFaction>,
+  faction: FactionLabel,
+  baseIndex: 0 | 1
+): Record<string, number> {
+  const factionDates = dates[faction]
+  if (!factionDates) return {}
+  const isTuple = Array.isArray(factionDates) && factionDates.length === 2
+  if (isTuple) return (factionDates as [Record<string, number>, Record<string, number>])[baseIndex] ?? {}
+  return (factionDates as Record<string, number>) ?? {}
+}
+
+export function buildingDateKey(rowIndex: number, groupIndex: number, cellIndex: number): string {
+  return `${rowIndex}-${groupIndex}-${cellIndex}`
+}
+
 interface MainStore {
   selectedFaction: FactionLabel
   selectedMainBaseIndex: Record<FactionLabel, 0 | 1>
@@ -249,6 +269,10 @@ interface MainStore {
   clearDevelopmentKnowledge: (id: string) => void
   /** Set global Knowledge/day (5–50) used for development time tooltips. */
   setKnowledgeBase: (value: number) => void
+  /** Per-building add date: key = coords, value = total days since 01.01.10192 AG. */
+  buildingDates: Record<FactionLabel, BuildingDatesPerFaction>
+  /** Set add date for a building cell. */
+  setBuildingDate: (rowIndex: number, groupIndex: number, cellIndex: number, totalDays: number) => void
 }
 
 function generateBuildId(): string {
@@ -274,6 +298,7 @@ export function getBuildStateObject() {
     selectedDevelopments: s.selectedDevelopments,
     developmentsKnowledge: s.developmentsKnowledge,
     knowledgeBase: s.knowledgeBase,
+    buildingDates: s.buildingDates,
     metadata: s.metadata,
     currentBuildName: s.currentBuildName,
   }
@@ -297,6 +322,7 @@ export function getSharePayloadFromState(s: MainStore): SharedBuildPayload {
     metadata: s.metadata,
     developmentsKnowledge: s.developmentsKnowledge,
     knowledgeBase: s.knowledgeBase,
+    buildingDates: s.buildingDates[faction],
   }
   if (hasMainBaseVariant(faction)) {
     const factionState = s.mainBaseState[faction]
@@ -348,6 +374,7 @@ export const useMainStore = create<MainStore>()(
           selectedDevelopments: [],
           developmentsKnowledge: {},
           knowledgeBase: DEFAULT_KNOWLEDGE_BASE,
+          buildingDates: initialBuildingDates,
           metadata: createEmptyMetadata(),
           defaultAuthor: DEFAULT_AUTHOR,
           currentBuildName: INITIAL_BUILD_NAME,
@@ -410,6 +437,31 @@ export const useMainStore = create<MainStore>()(
           setKnowledgeBase: (value) => {
             const clamped = Math.max(MIN_KNOWLEDGE_BASE, Math.min(MAX_KNOWLEDGE_BASE, Math.round(value)))
             set({ knowledgeBase: clamped })
+            persistBuild()
+          },
+          setBuildingDate: (rowIndex, groupIndex, cellIndex, totalDays) => {
+            const { selectedFaction, selectedMainBaseIndex, buildingDates } = get()
+            const baseIndex = selectedMainBaseIndex[selectedFaction] ?? 0
+            const factionDates = buildingDates[selectedFaction]
+            const isTuple = Array.isArray(factionDates) && factionDates.length === 2
+            const key = buildingDateKey(rowIndex, groupIndex, cellIndex)
+            const clamped = Math.max(0, Math.floor(totalDays))
+            if (isTuple) {
+              const [d0, d1] = factionDates as [Record<string, number>, Record<string, number>]
+              const next = [
+                baseIndex === 0 ? { ...d0, [key]: clamped } : d0,
+                baseIndex === 1 ? { ...d1, [key]: clamped } : d1,
+              ] as [Record<string, number>, Record<string, number>]
+              set({ buildingDates: { ...buildingDates, [selectedFaction]: next } })
+            } else {
+              const d = (factionDates as Record<string, number>) ?? {}
+              set({
+                buildingDates: {
+                  ...buildingDates,
+                  [selectedFaction]: { ...d, [key]: clamped },
+                },
+              })
+            }
             persistBuild()
           },
           reorderDevelopment: (id, direction) => {
@@ -501,7 +553,8 @@ export const useMainStore = create<MainStore>()(
             return newSlotIndex
           },
           setMainBaseCell: (rowIndex, groupIndex, cellIndex, buildingId) => {
-            const { selectedFaction, selectedMainBaseIndex, mainBaseState, buildingOrder } = get()
+            const { selectedFaction, selectedMainBaseIndex, mainBaseState, buildingOrder, buildingDates, developmentsKnowledge } =
+              get()
             const baseIndex = selectedMainBaseIndex[selectedFaction] ?? 0
             const factionState = mainBaseState[selectedFaction]
             const currentState = getMainBaseStateSlice(factionState, baseIndex)
@@ -541,9 +594,42 @@ export const useMainStore = create<MainStore>()(
               }
               : { ...buildingOrder, [selectedFaction]: newCurrentOrder }
 
+            // When removing a building from a 1-slot block that had a category bonus, clear developmentsKnowledge
+            // so estimates recompute with the new (lower) rates instead of stale overrides.
+            const removedFrom1Slot =
+              buildingId === null &&
+              Array.isArray(group) &&
+              group.length === 1 &&
+              group[cellIndex] != null &&
+              buildingHasCategoryBonus(group[cellIndex] as string)
+            const nextDevelopmentsKnowledge = removedFrom1Slot ? {} : developmentsKnowledge
+
+            // Clear building date when removing a building
+            let nextBuildingDates = buildingDates
+            if (buildingId === null) {
+              const key = buildingDateKey(rowIndex, groupIndex, cellIndex)
+              const factionDates = buildingDates[selectedFaction]
+              const isTuple = Array.isArray(factionDates) && factionDates.length === 2
+              if (isTuple) {
+                const [d0, d1] = factionDates as [Record<string, number>, Record<string, number>]
+                const { [key]: _, ...rest0 } = d0
+                const { [key]: __, ...rest1 } = d1
+                nextBuildingDates = {
+                  ...buildingDates,
+                  [selectedFaction]: [rest0, rest1] as [Record<string, number>, Record<string, number>],
+                }
+              } else {
+                const d = (factionDates as Record<string, number>) ?? {}
+                const { [key]: ___, ...rest } = d
+                nextBuildingDates = { ...buildingDates, [selectedFaction]: rest }
+              }
+            }
+
             set({
               mainBaseState: nextMainBaseState,
               buildingOrder: nextBuildingOrder,
+              buildingDates: nextBuildingDates,
+              ...(removedFrom1Slot ? { developmentsKnowledge: nextDevelopmentsKnowledge } : {}),
             })
             persistBuild()
           },
@@ -634,7 +720,7 @@ export const useMainStore = create<MainStore>()(
             persistBuild()
           },
           loadSharedBuild: (payload) => {
-            const { mainBaseState, buildingOrder, selectedMainBaseIndex, armoryState, unitSlots, councillorSlots, operationSlots, defaultAuthor } = get()
+            const { mainBaseState, buildingOrder, buildingDates, selectedMainBaseIndex, armoryState, unitSlots, councillorSlots, operationSlots, defaultAuthor } = get()
             const orderArray = Array.isArray(payload.order) ? payload.order : []
             const payloadState = Array.isArray(payload.state) ? payload.state : null
             const hasSecondBase = hasMainBaseVariant(payload.f) && payload.state2 != null && Array.isArray(payload.state2)
@@ -689,6 +775,10 @@ export const useMainStore = create<MainStore>()(
               selectedDevelopments: payload.selectedDevelopments,
               developmentsKnowledge: payload.developmentsKnowledge,
               knowledgeBase: payload.knowledgeBase,
+              buildingDates: {
+                ...buildingDates,
+                [payload.f]: payload.buildingDates ?? initialBuildingDates[payload.f],
+              } as Record<FactionLabel, BuildingDatesPerFaction>,
               metadata: payload.metadata,
             }
             const norm = normalizeLoadedBuild(synthetic, defaultAuthor)
@@ -708,6 +798,7 @@ export const useMainStore = create<MainStore>()(
               selectedDevelopments: norm.selectedDevelopments,
               developmentsKnowledge: norm.developmentsKnowledge,
               knowledgeBase: norm.knowledgeBase,
+              buildingDates: norm.buildingDates,
               metadata: norm.metadata,
               currentBuildName: "Shared build",
               currentBuildId: null,
@@ -762,6 +853,7 @@ export const useMainStore = create<MainStore>()(
               selectedDevelopments: get().selectedDevelopments,
               developmentsKnowledge,
               knowledgeBase,
+              buildingDates: get().buildingDates,
               metadata,
               currentBuildName: finalName,
             })
@@ -784,6 +876,7 @@ export const useMainStore = create<MainStore>()(
                 selectedDevelopments: [...get().selectedDevelopments],
                 developmentsKnowledge: deepClone(developmentsKnowledge),
                 knowledgeBase,
+                buildingDates: deepClone(get().buildingDates),
                 metadata: deepClone(metadata),
                 // Keep original createdAt - don't update on save
               }
@@ -813,6 +906,7 @@ export const useMainStore = create<MainStore>()(
                 selectedDevelopments: [...get().selectedDevelopments],
                 developmentsKnowledge: deepClone(developmentsKnowledge),
                 knowledgeBase,
+                buildingDates: deepClone(get().buildingDates),
                 metadata: deepClone(metadata),
               }
               set({
@@ -852,6 +946,7 @@ export const useMainStore = create<MainStore>()(
               selectedDevelopments: norm.selectedDevelopments,
               developmentsKnowledge: deepClone(norm.developmentsKnowledge),
               knowledgeBase: norm.knowledgeBase,
+              buildingDates: deepClone(norm.buildingDates),
               metadata: deepClone(norm.metadata),
               currentBuildName: build.name,
               currentBuildId: id,
@@ -884,6 +979,7 @@ export const useMainStore = create<MainStore>()(
               selectedDevelopments: norm.selectedDevelopments,
               developmentsKnowledge: deepClone(norm.developmentsKnowledge),
               knowledgeBase: norm.knowledgeBase,
+              buildingDates: deepClone(norm.buildingDates),
               metadata: deepClone(norm.metadata),
             }
             const snapshot = getBuildSnapshot({
@@ -910,6 +1006,7 @@ export const useMainStore = create<MainStore>()(
               selectedDevelopments: duplicated.selectedDevelopments ?? [],
               developmentsKnowledge: deepClone(norm.developmentsKnowledge),
               knowledgeBase: norm.knowledgeBase,
+              buildingDates: deepClone(norm.buildingDates),
               metadata: deepClone(duplicated.metadata),
               currentBuildName: duplicated.name,
               currentBuildId: newId,
@@ -937,6 +1034,7 @@ export const useMainStore = create<MainStore>()(
                 selectedDevelopments: [],
                 developmentsKnowledge: {},
                 knowledgeBase: DEFAULT_KNOWLEDGE_BASE,
+                buildingDates: initialBuildingDates,
                 metadata: createEmptyMetadata(defaultAuthor),
                 currentBuildName: getDefaultBuildName("atreides", newSaved),
                 currentBuildId: null,
@@ -964,6 +1062,7 @@ export const useMainStore = create<MainStore>()(
               selectedDevelopments: [],
               developmentsKnowledge: {},
               knowledgeBase: DEFAULT_KNOWLEDGE_BASE,
+              buildingDates: initialBuildingDates,
               metadata: createEmptyMetadata(defaultAuthor),
               currentBuildName: getDefaultBuildName("atreides", savedBuilds),
               currentBuildId: null,
@@ -986,6 +1085,7 @@ export const useMainStore = create<MainStore>()(
               selectedDevelopments: [],
               developmentsKnowledge: {},
               knowledgeBase: DEFAULT_KNOWLEDGE_BASE,
+              buildingDates: initialBuildingDates,
               metadata: createEmptyMetadata(defaultAuthor),
               currentBuildName: getDefaultBuildName(selectedFaction, savedBuilds),
               currentBuildId: null,
@@ -1024,6 +1124,7 @@ export const useMainStore = create<MainStore>()(
                 selectedDevelopments: g.selectedDevelopments,
                 developmentsKnowledge: g.developmentsKnowledge,
                 knowledgeBase: g.knowledgeBase,
+                buildingDates: g.buildingDates,
                 metadata: g.metadata,
                 currentBuildName: trimmed,
               })
@@ -1064,6 +1165,7 @@ export const useMainStore = create<MainStore>()(
             selectedDevelopments: s.selectedDevelopments,
             developmentsKnowledge: s.developmentsKnowledge,
             knowledgeBase: s.knowledgeBase,
+            buildingDates: s.buildingDates,
             metadata: s.metadata,
           }
         },
@@ -1091,6 +1193,7 @@ export const useMainStore = create<MainStore>()(
               merged.selectedDevelopments = norm.selectedDevelopments
               merged.developmentsKnowledge = deepClone(norm.developmentsKnowledge)
               merged.knowledgeBase = norm.knowledgeBase
+              merged.buildingDates = deepClone(norm.buildingDates)
               merged.metadata = deepClone(norm.metadata)
               merged.lastSavedSnapshot = getBuildSnapshot({
                 selectedFaction: build.selectedFaction,
@@ -1118,6 +1221,7 @@ export const useMainStore = create<MainStore>()(
           if (p.selectedDevelopments != null) merged.selectedDevelopments = p.selectedDevelopments
           if (p.developmentsKnowledge != null) merged.developmentsKnowledge = p.developmentsKnowledge
           if (p.knowledgeBase != null) merged.knowledgeBase = p.knowledgeBase
+          if (p.buildingDates != null) merged.buildingDates = p.buildingDates
           if (p.metadata != null) merged.metadata = p.metadata
           merged.lastSavedSnapshot =
             p.currentBuildId != null && p.mainBaseState != null
@@ -1136,6 +1240,7 @@ export const useMainStore = create<MainStore>()(
                 selectedDevelopments: p.selectedDevelopments ?? current.selectedDevelopments,
                 developmentsKnowledge: p.developmentsKnowledge ?? current.developmentsKnowledge,
                 knowledgeBase: p.knowledgeBase ?? current.knowledgeBase,
+                buildingDates: p.buildingDates ?? current.buildingDates,
                 metadata: p.metadata ?? current.metadata,
                 currentBuildName: p.currentBuildName ?? current.currentBuildName,
               } as BuildSnapshotState)
@@ -1193,6 +1298,17 @@ export function useCurrentBuildingOrder(): BuildingCoords[] {
   )
 }
 
+/** Building dates for the current faction's current base. Key = `${rowIndex}-${groupIndex}-${cellIndex}`. */
+export function useCurrentBuildingDates(): Record<string, number> {
+  return useMainStore((s) =>
+    getBuildingDatesSlice(
+      s.buildingDates,
+      s.selectedFaction,
+      s.selectedMainBaseIndex[s.selectedFaction] ?? 0
+    )
+  )
+}
+
 /** Returns a building's order number (1-based) or null if not found. */
 export function getBuildingOrderNumber(
   order: BuildingCoords[],
@@ -1226,6 +1342,7 @@ export function useIsBuildUpToDate(): boolean {
       selectedDevelopments: s.selectedDevelopments,
       developmentsKnowledge: s.developmentsKnowledge,
       knowledgeBase: s.knowledgeBase,
+      buildingDates: s.buildingDates,
       metadata: s.metadata,
       currentBuildName: s.currentBuildName,
     })

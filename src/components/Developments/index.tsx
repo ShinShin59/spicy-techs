@@ -1,10 +1,12 @@
 import { useMemo, useState } from "react"
 import { useMainStore } from "@/store"
-import { getDevelopmentsSlotPath } from "@/utils/assetPaths"
+import { getDevelopmentsSlotPath, getHudImagePath } from "@/utils/assetPaths"
 import { playDevelopmentsOpenSound, playDevelopmentsCloseSound } from "@/utils/sound"
-import { totalCostOfOrder, formatDaysAsMonthsAndDays } from "@/utils/techCost"
+import { totalCostOfOrder } from "@/utils/techCost"
+import MonthEstimation from "@/components/MonthEstimation"
 import { getLandstraadWindowPhrase } from "./developmentsCostUtils"
 import { totalDaysOfOrder, type DevWithTierAndDomain } from "@/utils/knowledge"
+import { useCurrentKnowledgeValue } from "@/hooks/useCurrentKnowledgeValue"
 import PanelCorners from "@/components/PanelCorners"
 import { PANEL_BORDER_HOVER_CLASS } from "@/components/shared/panelBorderHover"
 import { usePanelHideOnRightClick } from "@/hooks/usePanelHideOnRightClick"
@@ -35,10 +37,13 @@ const Developments = () => {
   const mainBaseState = useMainStore((s) => s.mainBaseState)
   const developmentsKnowledge = useMainStore((s) => s.developmentsKnowledge)
   const knowledgeBase = useMainStore((s) => s.knowledgeBase)
+  const buildingDates = useMainStore((s) => s.buildingDates)
   const [pickerOpen, setPickerOpen] = useState(false)
   const toggleDevelopments = useMainStore((s) => s.toggleDevelopments)
   const developmentsOpen = useMainStore((s) => s.panelVisibility.developmentsOpen)
   const panelRightClickHide = usePanelHideOnRightClick(toggleDevelopments, developmentsOpen)
+
+  const currentKnowledgeValue = useCurrentKnowledgeValue()
 
   const totalCostAndDays = useMemo(() => {
     if (selectedDevelopments.length === 0) return null
@@ -50,10 +55,11 @@ const Developments = () => {
         selectedDevelopments,
         developmentsKnowledge,
         knowledgeBase,
+        buildingDates,
       })
     )
     return { cost, days }
-  }, [selectedDevelopments, selectedFaction, mainBaseState, developmentsKnowledge, knowledgeBase])
+  }, [selectedDevelopments, selectedFaction, mainBaseState, developmentsKnowledge, knowledgeBase, buildingDates])
 
   return (
     <div className="flex flex-col">
@@ -67,7 +73,7 @@ const Developments = () => {
           playDevelopmentsOpenSound()
           setPickerOpen(true)
         }}
-        className={`relative bg-zinc-900 w-[168px] gap-2 p-4 box-border overflow-y-auto min-h-0 grid grid-cols-2 grid-rows-2 cursor-pointer text-left ${PANEL_BORDER_HOVER_CLASS}`}
+        className={`relative bg-zinc-900 w-[168px] gap-2 p-4 box-border overflow-hidden min-h-0 grid grid-cols-2 grid-rows-2 cursor-pointer text-left ${PANEL_BORDER_HOVER_CLASS}`}
         {...panelRightClickHide}
       >
         <PanelCorners />
@@ -87,18 +93,28 @@ const Developments = () => {
           )
         })}
       </button>
-      {totalCostAndDays && (
-        <div className="flex flex-col items-center pt-2 gap-0.5">
-          <span className="text-xs text-zinc-500 tabular-nums">
-            {formatDaysAsMonthsAndDays(totalCostAndDays.days)}
+      <div className="flex flex-col items-center pt-2 gap-1">
+        <div className="flex items-center gap-2">
+          <span
+            className="tabular-nums text-[0.75rem]"
+            style={{ color: "#D57E3B" }}
+          >
+            {currentKnowledgeValue}
           </span>
-          {getLandstraadWindowPhrase(totalCostAndDays.days) && (
-            <span className="text-[11px] text-sky-300 tabular-nums">
-              {getLandstraadWindowPhrase(totalCostAndDays.days)!}
-            </span>
-          )}
+          <img
+            src={getHudImagePath("ressources/knowledge.png")}
+            alt=""
+            className="w-4 h-4 shrink-0"
+            aria-hidden
+          />
+          <MonthEstimation totalDays={totalCostAndDays?.days ?? 0} />
         </div>
-      )}
+        {getLandstraadWindowPhrase(totalCostAndDays?.days ?? 0) && (
+          <span className="text-[11px] text-zinc-500 tabular-nums">
+            {getLandstraadWindowPhrase(totalCostAndDays?.days ?? 0)!}
+          </span>
+        )}
+      </div>
       {pickerOpen && (
         <DevelopmentsPicker
           open={pickerOpen}

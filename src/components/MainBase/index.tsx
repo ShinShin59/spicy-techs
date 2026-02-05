@@ -1,8 +1,8 @@
-import { useState } from "react"
-import { useCurrentMainBaseLayout, useCurrentMainBaseState, useMainStore, useUsedBuildingIds, useCurrentBuildingOrder, getBuildingOrderNumber, type BuildingCoords } from "../../store"
+import { useState, useEffect, useRef } from "react"
+import { useCurrentMainBaseLayout, useCurrentMainBaseState, useMainStore, useUsedBuildingIds, useCurrentBuildingOrder, useCurrentBuildingDates, getBuildingOrderNumber, buildingDateKey, type BuildingCoords } from "../../store"
 import { hasMainBaseVariant, mainBaseVariants } from "@/store/main-base"
 import MainBaseBuildingsSelector, { type MainBuilding } from "./MainBaseBuildingsSelector"
-import { getBuildingIconPath, getHudImagePath } from "@/utils/assetPaths"
+import { getBuildingIconPath, getHudImagePath, TIME_ICON_PATH } from "@/utils/assetPaths"
 import { playCancelSlotSound, playMenuToggleSound, playMainBaseBuildingSound, playMainBaseSwitchSound } from "@/utils/sound"
 import { usePanelTooltip } from "@/hooks/usePanelTooltip"
 import { usePanelHideOnRightClick } from "@/hooks/usePanelHideOnRightClick"
@@ -11,6 +11,7 @@ import OrderBadge from "@/components/OrderBadge"
 import PanelCorners from "@/components/PanelCorners"
 import { PANEL_BORDER_HOVER_CLASS } from "@/components/shared/panelBorderHover"
 import { incrementOrder, decrementOrder, buildingIsEqual } from "@/hooks/useItemOrder"
+import DatePicker from "@/components/DatePicker"
 import mainBuildingsData from "./MainBaseBuildingsSelector/main-buildings.json"
 
 const mainBuildings = mainBuildingsData as MainBuilding[]
@@ -57,10 +58,15 @@ const MainBase = () => {
   const updateBuildingOrder = useMainStore((state) => state.updateBuildingOrder)
   const usedBuildingIds = useUsedBuildingIds()
   const buildingOrder = useCurrentBuildingOrder()
+  const buildingDates = useCurrentBuildingDates()
+  const setBuildingDate = useMainStore((s) => s.setBuildingDate)
 
   const variant = hasMainBaseVariant(selectedFaction) ? mainBaseVariants[selectedFaction] : null
 
   const [selectedCell, setSelectedCell] = useState<SelectedCell | null>(null)
+  const [datePickerCell, setDatePickerCell] = useState<SelectedCell | null>(null)
+  const [datePickerAnchor, setDatePickerAnchor] = useState<AnchorPosition | null>(null)
+  const datePickerRef = useRef<HTMLDivElement>(null)
   const [anchorPosition, setAnchorPosition] = useState<AnchorPosition | null>(null)
   const [hoverTooltip, setHoverTooltip, showTooltip] = usePanelTooltip<{
     building: MainBuilding
@@ -68,9 +74,9 @@ const MainBase = () => {
   }>(selectedCell !== null)
 
   const handleCellClick = (e: React.MouseEvent, rowIndex: number, groupIndex: number, cellIndex: number) => {
-    // Don't open selector if clicking on the order badge
+    // Don't open selector if clicking on the order badge or date picker trigger
     const target = e.target as HTMLElement
-    if (target.closest("[data-order-badge]")) return
+    if (target.closest("[data-order-badge]") || target.closest("[data-date-picker-trigger]")) return
 
     const buildingName = mainBaseState[rowIndex]?.[groupIndex]?.[cellIndex]
     const buildingData = getBuildingByName(buildingName)
@@ -121,6 +127,23 @@ const MainBase = () => {
     setSelectedCell(null)
     setAnchorPosition(null)
   }
+
+  // Close DatePicker on outside click
+  useEffect(() => {
+    if (!datePickerCell) return
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        datePickerRef.current &&
+        !datePickerRef.current.contains(e.target as Node) &&
+        !(e.target as HTMLElement).closest("[data-date-picker-trigger]")
+      ) {
+        setDatePickerCell(null)
+        setDatePickerAnchor(null)
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [datePickerCell])
 
   const handleCellRightClick = (e: React.MouseEvent, rowIndex: number, groupIndex: number, cellIndex: number) => {
     e.preventDefault()
@@ -248,11 +271,36 @@ const MainBase = () => {
                           }
                         >
                           {hasBuilding && buildingData && (
-                            <img
-                              src={getBuildingIconPath(buildingData.name)}
-                              alt={buildingData.name}
-                              className="w-12 h-12"
-                            />
+                            <>
+                              <img
+                                src={getBuildingIconPath(buildingData.name)}
+                                alt={buildingData.name}
+                                className="w-12 h-12"
+                              />
+                              <button
+                                type="button"
+                                data-date-picker-trigger
+                                className="absolute top-0.5 left-0.5 z-10 w-4 h-4 flex items-center justify-center bg-black/50 hover:bg-black/70 transition-colors"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  playMenuToggleSound(true)
+                                  const rect = e.currentTarget.getBoundingClientRect()
+                                  setDatePickerAnchor({ x: rect.left, y: rect.bottom })
+                                  setDatePickerCell((prev) =>
+                                    prev?.rowIndex === rowIndex && prev?.groupIndex === groupIndex && prev?.cellIndex === cellIndex
+                                      ? null
+                                      : { rowIndex, groupIndex, cellIndex }
+                                  )
+                                }}
+                                aria-label="Définir la date d'ajout du bâtiment"
+                              >
+                                <img
+                                  src={TIME_ICON_PATH}
+                                  alt=""
+                                  className="w-3 h-3 object-contain"
+                                />
+                              </button>
+                            </>
                           )}
                           {orderNumber !== null && (
                             <OrderBadge
@@ -283,6 +331,24 @@ const MainBase = () => {
               />
             )}
           </div>
+          {datePickerCell && datePickerAnchor && (
+            <div
+              ref={datePickerRef}
+              data-date-picker
+              className="fixed z-20 bg-zinc-900 p-2 shadow-lg"
+              style={{
+                left: datePickerAnchor.x,
+                top: datePickerAnchor.y + 4,
+              }}
+            >
+              <DatePicker
+                totalDays={buildingDates[buildingDateKey(datePickerCell.rowIndex, datePickerCell.groupIndex, datePickerCell.cellIndex)] ?? 0}
+                onChange={(totalDays) =>
+                  setBuildingDate(datePickerCell.rowIndex, datePickerCell.groupIndex, datePickerCell.cellIndex, totalDays)
+                }
+              />
+            </div>
+          )}
         </div>
 
       </div>

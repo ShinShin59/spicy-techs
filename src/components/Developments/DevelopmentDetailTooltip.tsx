@@ -3,6 +3,7 @@ import TooltipWrapper from "@/components/shared/TooltipWrapper"
 import { TIME_ICON_PATH } from "@/utils/assetPaths"
 import type { KnowledgeModifierBreakdown } from "@/utils/knowledge"
 import { getLandstraadWindowPhrase } from "./developmentsCostUtils"
+import MonthEstimation from "@/components/MonthEstimation"
 
 export type DevelopmentDomain = "economic" | "military" | "statecraft" | "green"
 
@@ -50,6 +51,10 @@ export interface DevelopmentDetailTooltipProps {
   costKnowledge?: number
   /** Optional Knowledge/day breakdown for this development. */
   knowledgeBreakdown?: KnowledgeModifierBreakdown
+  /** Days when this development is completed (for Landsraad estimation). Use this for per-dev tooltip. */
+  daysToCompleteThisDev?: number
+  /** Total days for the full build. Fallback when daysToCompleteThisDev not set. */
+  totalBuildDays?: number
 }
 
 type Segment = { type: "bracket" | "value" | "normal"; text: string }
@@ -142,16 +147,30 @@ interface TooltipContentProps {
   development: DevelopmentEntry
   costKnowledge?: number
   knowledgeBreakdown?: KnowledgeModifierBreakdown
+  daysToCompleteThisDev?: number
+  totalBuildDays?: number
 }
 
-function TooltipContent({ development, costKnowledge, knowledgeBreakdown }: TooltipContentProps) {
+function TooltipContent({
+  development,
+  costKnowledge,
+  knowledgeBreakdown,
+  daysToCompleteThisDev,
+  totalBuildDays,
+}: TooltipContentProps) {
   const categoryLabel = DOMAIN_LABELS[development.domain]
   const colorClass = domainColor[development.domain]
   const knowledgePerDay =
     knowledgeBreakdown?.effective ?? DEFAULT_KNOWLEDGE_PER_DAY
   const costDays =
     costKnowledge != null ? Math.round(costKnowledge / knowledgePerDay) : undefined
-  const landstraadPhrase = costDays != null ? getLandstraadWindowPhrase(costDays) : null
+  const daysForLandstraad =
+    typeof daysToCompleteThisDev === "number"
+      ? daysToCompleteThisDev
+      : typeof totalBuildDays === "number"
+        ? totalBuildDays
+        : costDays ?? 0
+  const landstraadPhrase = getLandstraadWindowPhrase(daysForLandstraad)
   return (
     <>
       <div className="px-3 py-2 border-b border-zinc-700/80 bg-zinc-800/90">
@@ -159,6 +178,7 @@ function TooltipContent({ development, costKnowledge, knowledgeBreakdown }: Tool
           <span className="text-zinc-100 font-semibold text-sm min-w-0 flex-1">{development.name}</span>
           {costDays != null && (
             <div
+              id="knowledge-button"
               className="relative w-6 h-6 shrink-0 bg-contain bg-center bg-no-repeat"
               style={{ backgroundImage: `url(${TIME_ICON_PATH})` }}
               aria-hidden
@@ -169,11 +189,6 @@ function TooltipContent({ development, costKnowledge, knowledgeBreakdown }: Tool
             </div>
           )}
         </div>
-        {landstraadPhrase && (
-          <div className="mt-0.5 text-[10px] text-sky-300">
-            {landstraadPhrase}
-          </div>
-        )}
         <div className={`text-xs ${colorClass}`}>{categoryLabel}</div>
       </div>
       {development.attributes && development.attributes.length > 0 ? (
@@ -192,6 +207,16 @@ function TooltipContent({ development, costKnowledge, knowledgeBreakdown }: Tool
           {development.desc}
         </div>
       ) : null}
+      {(landstraadPhrase || daysForLandstraad > 0) && (
+        <div className="px-3 py-1 space-y-0.5 text-right">
+          {landstraadPhrase && (
+            <div className="text-xs text-zinc-500 tabular-nums">{landstraadPhrase}</div>
+          )}
+          <div className="flex justify-end">
+            <MonthEstimation totalDays={daysForLandstraad} compact />
+          </div>
+        </div>
+      )}
     </>
   )
 }
@@ -202,8 +227,10 @@ export default function DevelopmentDetailTooltip({
   anchorRect,
   costKnowledge,
   knowledgeBreakdown,
+  daysToCompleteThisDev,
+  totalBuildDays,
 }: DevelopmentDetailTooltipProps) {
-  const costProps = { costKnowledge, knowledgeBreakdown }
+  const costProps = { costKnowledge, knowledgeBreakdown, daysToCompleteThisDev, totalBuildDays }
   if (followCursor) {
     return createPortal(
       <div

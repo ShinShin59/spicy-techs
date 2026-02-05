@@ -59,28 +59,21 @@ function formatOrdinal(n: number): string {
   }
 }
 
-/**
- * Given a total number of days, returns a human phrase describing how close that
- * is to the nearest Landsraad session (every 2 days), e.g.
- *
- * - "3 days before 2nd landstraad"
- * - "9 days after 1st landstraad"
- *
- * Only returns a phrase when the distance to the nearest session is ≤ 10 days.
- * Otherwise returns null.
- */
 export function getLandstraadWindowPhrase(totalDays: number | undefined): string | null {
   if (totalDays == null || !Number.isFinite(totalDays)) return null
   const days = Math.max(0, Math.round(totalDays))
 
-  // Landsraad every 2 days, starting at day 2 (1st landstraad at day 2).
-  const approxIndex = Math.max(1, Math.round(days / 2))
-  const sessionDay = approxIndex * 2
+  // Landsraad cycle: every 20 days. We snap to the nearest multiple of 20.
+  // Example phrases:
+  // - "3 days before 2nd landstraad"  (e.g. 37 days → nearest is 40)
+  // - "9 days after 1st landstraad"   (e.g. 29 days → nearest is 20)
+  //
+  // We only care when we're within ±10 days around the nearest session.
+  const CYCLE = 20
+  const approxIndex = Math.max(1, Math.round(days / CYCLE))
+  const sessionDay = approxIndex * CYCLE
   const diff = days - sessionDay
   const absDiff = Math.abs(diff)
-
-  // Outside the interesting window: don't show anything.
-  if (absDiff > 10) return null
 
   const ordinal = formatOrdinal(approxIndex)
   if (diff === 0) {

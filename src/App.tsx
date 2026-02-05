@@ -21,6 +21,7 @@ import "./utils/assetPaths"
 function App() {
   const panelVisibility = useMainStore((s) => s.panelVisibility)
   const createNewBuild = useMainStore((s) => s.createNewBuild)
+  const resetToDefault = useMainStore((s) => s.resetToDefault)
   const forkCurrentBuild = useMainStore((s) => s.forkCurrentBuild)
   const lightweightMode = useUIStore((s) => s.lightweightMode)
 
@@ -57,7 +58,7 @@ function App() {
       <DitherBackground />
       <DitherOverlay />
       <div className="relative z-10 flex flex-col flex-1 min-h-0">
-        <Topbar onNew={createNewBuild} onFork={forkCurrentBuild} />
+        <Topbar onNew={createNewBuild} onReset={resetToDefault} onFork={forkCurrentBuild} />
         <div className="flex flex-1 min-h-0 gap-3 p-3 pt-[2em]">
           <Metadata />
           <div className="flex-1 flex items-start mt-48 justify-center min-h-0 overflow-auto px-4 pb-4">

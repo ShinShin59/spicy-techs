@@ -37,6 +37,8 @@ export interface SharedBuildPayload {
   developmentsKnowledge?: DevelopmentsKnowledge
   /** Optional global Knowledge/day (5–50) for development time tooltips. */
   knowledgeBase?: number
+  /** Optional per-building add dates for the shared faction (key = coords, value = total days). */
+  buildingDates?: Record<string, number> | [Record<string, number>, Record<string, number>]
 }
 
 export function encodeBuildPayload(payload: SharedBuildPayload): string {

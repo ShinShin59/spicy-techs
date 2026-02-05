@@ -113,6 +113,47 @@ export function costToDays(
 /** In-game month length in days */
 export const DAYS_PER_MONTH = 30
 
+/** In-game year length in days (12 months × 30 days) */
+export const DAYS_PER_YEAR = 360
+
+/** AG calendar start year (01.01.10192 AG = day 0) */
+export const AG_START_YEAR = 10192
+
+/** AG date from total days since start (01.01.10192) */
+export interface AGDate {
+  day: number
+  month: number
+  year: number
+  /** 0–1: progress through current month (day 1 ≈ 0.03, day 30 = 1) */
+  monthProgress: number
+}
+
+export function daysToAGDate(totalDays: number): AGDate {
+  const d = Math.max(0, Math.floor(totalDays))
+  const daysInYear = d % DAYS_PER_YEAR
+  const year = AG_START_YEAR + Math.floor(d / DAYS_PER_YEAR)
+  const month = Math.floor(daysInYear / DAYS_PER_MONTH) + 1
+  const day = (daysInYear % DAYS_PER_MONTH) + 1
+  const monthProgress = day / DAYS_PER_MONTH
+  return { day, month, year, monthProgress }
+}
+
+/** Convert AG date (day, month, year) to total days since 01.01.10192 AG */
+export function agDateToTotalDays(day: number, month: number, year: number): number {
+  const d = Math.max(1, Math.min(30, Math.floor(day)))
+  const m = Math.max(1, Math.min(12, Math.floor(month)))
+  const y = Math.max(AG_START_YEAR, Math.floor(year))
+  return (y - AG_START_YEAR) * DAYS_PER_YEAR + (m - 1) * DAYS_PER_MONTH + (d - 1)
+}
+
+/** Formats total days as "DD.MM.YYYY AG" */
+export function formatAGDate(totalDays: number): string {
+  const { day, month, year } = daysToAGDate(totalDays)
+  const dd = String(day).padStart(2, "0")
+  const mm = String(month).padStart(2, "0")
+  return `${dd}.${mm}.${year} AG`
+}
+
 /**
  * Formats a number of days as "X month(s) Y day(s)". Uses DAYS_PER_MONTH (30) for months.
  * Omits months when 0; omits days when 0. Singular "month"/"day" when 1.
