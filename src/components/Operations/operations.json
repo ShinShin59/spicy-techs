@@ -382,7 +382,7 @@
       "x": 41,
       "y": 0
     },
-    "image": "operation_41.webp",
+    "image": "operation_46.webp",
     "props": {
       "onlyForFactions": [
         "vernius"
@@ -711,7 +711,7 @@
       "x": 42,
       "y": 0
     },
-    "image": "operation_42.webp",
+    "image": "operation_45.webp",
     "props": {
       "onlyForFactions": [
         "vernius"
@@ -723,7 +723,6 @@
     "name": "Empirical Data",
     "desc": "Progress is a constant back and forth between theoretical breakthrough and practical issues. Collecting data from real life fights on the surface of Arrakis informs current researches.",
     "attributes": [
-      "+1 [Knowledge]",
       "+1 [Knowledge] per units of any faction in combat in the region"
     ]
   },
@@ -1038,7 +1037,7 @@
       "x": 43,
       "y": 0
     },
-    "image": "operation_43.webp",
+    "image": "operation_47.webp",
     "props": {
       "onlyForFactions": [
         "vernius"
