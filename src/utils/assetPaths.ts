@@ -4,6 +4,7 @@ import mainBuildingsData from "@/components/MainBase/MainBaseBuildingsSelector/m
 import unitsData from "@/components/Units/units.json"
 import heroesData from "@/components/Units/hero.json"
 import councillorsData from "@/components/Councillors/councillors.json"
+import operationsData from "@/components/Operations/operations.json"
 
 const BASE = import.meta.env.BASE_URL
 
@@ -194,6 +195,14 @@ function initPreload(): void {
   Object.values(councillorsByFaction).forEach((councillors) => {
     if (Array.isArray(councillors)) {
       councillors.forEach((c) => preloadImage(getCouncillorIconPath(c.image)))
+    }
+  })
+
+  // Preload operation icons
+  const operations = operationsData as { image?: string | null }[]
+  operations.forEach((op) => {
+    if (op.image) {
+      preloadImage(getOperationIconPath("", op.image))
     }
   })
 }
