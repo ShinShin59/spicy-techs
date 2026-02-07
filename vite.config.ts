@@ -19,6 +19,7 @@ export default defineConfig({
     },
   },
   build: {
+    chunkSizeWarningLimit: 1000, // three.js ecosystem is inherently large (~938 kB)
     sourcemap: true,
     rollupOptions: {
       output: {
